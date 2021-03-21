@@ -8,7 +8,7 @@ using WebApiSimplesCSharp.Models.Usuarios;
 
 namespace WebApiSimplesCSharp.Services.Usuarios
 {
-	public class ManutencaoUsuarioService : IManutencaoUsuarioService
+	class ManutencaoUsuarioService : IManutencaoUsuarioService
 	{
 		private readonly WebApiSimplesDbContext dbContext;
 

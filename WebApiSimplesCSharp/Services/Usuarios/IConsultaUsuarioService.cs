@@ -13,7 +13,7 @@ namespace WebApiSimplesCSharp.Services.Usuarios
 
 		Usuario? GetByLogin(string login);
 
-		(IEnumerable<Usuario> items, int? totalItems) GetList(string? search, int skip = 0, int? limit = null, bool countTotal = false);
+		(IEnumerable<Usuario> items, int? totalItems) GetList(string? search = null, int skip = 0, int? limit = null, bool countTotal = false);
 	
 	}
 

@@ -7,7 +7,7 @@ using WebApiSimplesCSharp.Data.Entities;
 
 namespace WebApiSimplesCSharp.Services.Usuarios.Consulta
 {
-	public class ConsultaUsuarioService : IConsultaUsuarioService
+	class ConsultaUsuarioService : IConsultaUsuarioService
 	{
 		private readonly WebApiSimplesDbContext dbContext;
 
@@ -26,10 +26,10 @@ namespace WebApiSimplesCSharp.Services.Usuarios.Consulta
 
 		public Usuario? GetByLogin(string login)
 		{
-			return dbContext.Usuarios.SingleOrDefault(u => u.Login == login);	
+			return dbContext.Usuarios.SingleOrDefault(u => u.Login == login);
 		}
 
-		public (IEnumerable<Usuario> items, int? totalItems) GetList(string? search, int skip = 0, int? limit = null, bool countTotal = false)
+		public (IEnumerable<Usuario> items, int? totalItems) GetList(string? search, int skip, int? limit, bool countTotal)
 		{
 			var query = dbContext.Usuarios.AsNoTracking();
 

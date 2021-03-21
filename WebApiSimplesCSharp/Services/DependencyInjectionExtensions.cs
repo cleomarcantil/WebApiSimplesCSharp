@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
+using WebApiSimplesCSharp.Data;
 using WebApiSimplesCSharp.Services.Usuarios;
 using WebApiSimplesCSharp.Services.Usuarios.Consulta;
 
@@ -8,9 +10,13 @@ namespace WebApiSimplesCSharp.Services
 	{
 		public static void AddServices(this IServiceCollection services)
 		{
-			services.AddScoped<IConsultaUsuarioService, ConsultaUsuarioService>();
-			services.AddScoped<IManutencaoUsuarioService, ManutencaoUsuarioService>();
+			services.AddScoped(f => UsuarioServiceFactory.CreateConsultaService(f.GetDbContext()));
+			services.AddScoped(f => UsuarioServiceFactory.CreateManutencaoService(f.GetDbContext()));
 
 		}
+
+		private static WebApiSimplesDbContext GetDbContext(this IServiceProvider sp)
+			=> sp.GetRequiredService<WebApiSimplesDbContext>();
+
 	}
 }
