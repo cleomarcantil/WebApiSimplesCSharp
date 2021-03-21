@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using WebApiSimplesCSharp.Data;
+using WebApiSimplesCSharp.Services;
 
 namespace WebApiSimplesCSharp
 {
@@ -32,6 +33,8 @@ namespace WebApiSimplesCSharp
 			services.AddRazorPages();
 
 			services.AddDbContext(Configuration.GetConnectionString("DefaultConnection"));
+
+			services.AddServices();
 
 		}
 
