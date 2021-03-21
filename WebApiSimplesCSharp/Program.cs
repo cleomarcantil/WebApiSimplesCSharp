@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using WebApiSimplesCSharp.Data;
 
 namespace WebApiSimplesCSharp
 {
@@ -13,7 +10,9 @@ namespace WebApiSimplesCSharp
 	{
 		public static void Main(string[] args)
 		{
-			CreateHostBuilder(args).Build().Run();
+			CreateHostBuilder(args).Build()
+				.CheckData()
+				.Run();
 		}
 
 		public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -21,5 +20,29 @@ namespace WebApiSimplesCSharp
 				.ConfigureWebHostDefaults(webBuilder => {
 					webBuilder.UseStartup<Startup>();
 				});
+	}
+
+
+	public static class IHostExtensions
+	{
+		public static IHost CheckData(this IHost appHost)
+		{
+			using var scope = appHost.Services.CreateScope();
+			var services = scope.ServiceProvider;
+
+			var dbContext = services.GetRequiredService<WebApiSimplesDbContext>();
+
+			try {
+				DBInit.CheckMigrationsAsync(dbContext)
+					.Wait();
+			} catch (Exception ex) {
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine($"Erro na migra��o: {ex.Message}");
+				throw;
+			}
+
+			return appHost;
+		}
+
 	}
 }
