@@ -112,6 +112,27 @@ namespace WebApiSimplesCSharp.Controllers
 			};
 		}
 
-	}
 
+		[HttpPost("change-password")]
+		public async Task<ActionResult> ChangePassword(ChangePasswordInputModel changePassword, [FromServices] IManutencaoUsuarioService manutencaoUsuarioService)
+		{
+			var usuarioId = authService.GetCurrentUserId();
+
+			if (usuarioId is null) {
+				return Unauthorized();
+			}
+
+			var usuarioAtual = consultaUsuarioService.GetById(usuarioId.Value)
+				?? throw new Exception($"Erro obtendo usuário '{usuarioId}'!");
+
+			if (!usuarioAtual.CheckSenha(changePassword.SenhaAtual)) {
+				throw new CredenciaisInvalidasException("Senha atual inválida!");
+			}
+
+			await manutencaoUsuarioService.AlterarSenha(usuarioId.Value, changePassword.NovaSenha);
+
+			return NoContent();
+		}
+
+	}
 }

@@ -43,6 +43,18 @@ namespace WebApiSimplesCSharp.Services.Usuarios
 			await dbContext.SaveChangesAsync();
 		}
 
+		public async Task AlterarSenha(int id, string novaSenha)
+		{
+			var usuario = await dbContext.Usuarios.FindAsync(id);
+
+			if (usuario is null) {
+				throw new UsuarioInexistenteException($"Usuário inexistente: {id}!");
+			}
+
+			usuario.DefinirSenha(novaSenha);
+			await dbContext.SaveChangesAsync();
+		}
+
 		public async Task Excluir(int id)
 		{
 			var usuario = await dbContext.Usuarios.FindAsync(id);

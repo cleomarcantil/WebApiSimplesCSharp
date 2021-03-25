@@ -11,6 +11,8 @@ namespace WebApiSimplesCSharp.Services.Usuarios
 
 		Task Atualizar(int id, AtualizarUsuarioInputModel atualizarUsuarioInputModel);
 
+		Task AlterarSenha(int id, string novaSenha);
+
 		Task Excluir(int id);
 	}
 }
