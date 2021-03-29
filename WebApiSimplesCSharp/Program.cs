@@ -1,8 +1,11 @@
 using System;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebApiSimplesCSharp.Data;
+using WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization;
 
 namespace WebApiSimplesCSharp
 {
@@ -10,6 +13,13 @@ namespace WebApiSimplesCSharp
 	{
 		public static void Main(string[] args)
 		{
+			var stopwatch = new Stopwatch();
+
+			stopwatch.Start();
+			PolicyDiscover.Init(new[] { typeof(Program).Assembly });
+			stopwatch.Stop();
+			Console.WriteLine($"Tempo gasto com PoliciesDiscover.Init: {(stopwatch.ElapsedMilliseconds / 1000.0):0.000}");
+
 			CreateHostBuilder(args).Build()
 				.CheckData()
 				.Run();

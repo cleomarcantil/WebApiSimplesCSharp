@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -14,7 +15,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using WebApiSimplesCSharp.Data;
+using WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization;
 using WebApiSimplesCSharp.Services;
+using WebApiSimplesCSharp.Services.Auth;
+using WebApiSimplesCSharp.Services.Constants.Policies;
 using WebApiSimplesCSharp.Settings;
 
 namespace WebApiSimplesCSharp
@@ -36,6 +40,7 @@ namespace WebApiSimplesCSharp
 
 			var tokenSettingsSectionConfig = Configuration.GetSection(TOKEN_SETTINGS_CONFIG_KEY);
 			services.Configure<TokenSettings>(tokenSettingsSectionConfig);
+			//services.AddTransient(f => f.GetRequiredService<IOptions<TokenSettings>>().Value);
 
 			var settings = new TokenSettings();
 			tokenSettingsSectionConfig.Bind(settings);
@@ -67,6 +72,8 @@ namespace WebApiSimplesCSharp
 
 			services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+			services.AddAuthorizationWithApplicationPolicies<PolicyAuthorizationChecker>();
+
 			services.AddDbContext(Configuration.GetConnectionString("DefaultConnection"));
 
 			services.AddServices();
@@ -92,6 +99,26 @@ namespace WebApiSimplesCSharp
 				endpoints.MapControllers();
 				endpoints.MapRazorPages();
 			});
+		}
+	}
+
+	class PolicyAuthorizationChecker : IPolicyAuthorizationChecker
+	{
+		public bool IsPolicyAuthorizedForUser(string policy, ClaimsPrincipal user)
+		{
+			var userId = AuthService.GetIdFromUser(user);
+			var isAdmin = (userId is 1);
+
+			// TODO: Validar policy para usuário dimanicamente...
+			return (policy) switch
+			{
+				UsuariosPolicies.Listar => true,
+				UsuariosPolicies.Visualizar => true,
+				UsuariosPolicies.Criar => isAdmin,
+				UsuariosPolicies.Atualizar => isAdmin,
+				UsuariosPolicies.Excluir => isAdmin,
+				_ => false,
+			};
 		}
 	}
 }

@@ -2,11 +2,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using WebApiSimplesCSharp.Constants.LogEvents;
 using WebApiSimplesCSharp.Models.Common;
 using WebApiSimplesCSharp.Models.Usuarios;
+using WebApiSimplesCSharp.Services.Constants.Policies;
 using WebApiSimplesCSharp.Services.Usuarios;
 
 namespace WebApiSimplesCSharp.Controllers
@@ -31,6 +33,7 @@ namespace WebApiSimplesCSharp.Controllers
 
 		public const int MAX_ITEMS_LIMIT = 1000;
 
+		[Authorize(UsuariosPolicies.Listar)]
 		[HttpGet]
 		public ListViewModel<UsuarioViewModel> Listar(string? q = null,
 			int? skip = null, [Range(1, MAX_ITEMS_LIMIT)] int? limit = null,
@@ -49,6 +52,7 @@ namespace WebApiSimplesCSharp.Controllers
 			};
 		}
 
+		[Authorize(UsuariosPolicies.Visualizar)]
 		[HttpGet("{id}")]
 		public ActionResult<UsuarioViewModel> Get(int id)
 		{
@@ -62,6 +66,7 @@ namespace WebApiSimplesCSharp.Controllers
 		}
 
 
+		[Authorize(UsuariosPolicies.Criar)]
 		[HttpPost]
 		public async Task<ActionResult<IdViewModel<int>>> Criar([FromBody] CriarUsuarioInputModel criarUsuarioInputModel)
 		{
@@ -71,6 +76,7 @@ namespace WebApiSimplesCSharp.Controllers
 			return CreatedAtAction(nameof(Get), new { id = idGerado }, new IdViewModel<int> { Id = idGerado });
 		}
 
+		[Authorize(UsuariosPolicies.Atualizar)]
 		[HttpPut("{id}")]
 		public async Task<ActionResult> Atualizar(int id, [FromBody] AtualizarUsuarioInputModel atualizarUsuarioInputModel)
 		{
@@ -84,6 +90,7 @@ namespace WebApiSimplesCSharp.Controllers
 			return NoContent();
 		}
 
+		[Authorize(UsuariosPolicies.Excluir)]
 		[HttpDelete("{id}")]
 		public async Task<ActionResult> Excluir(int id)
 		{

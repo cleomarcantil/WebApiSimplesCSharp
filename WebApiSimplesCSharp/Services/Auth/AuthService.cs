@@ -45,13 +45,14 @@ namespace WebApiSimplesCSharp.Services.Auth
 			=> new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
 
 		public int? GetCurrentUserId()
+			=> (httpContextAccessor.HttpContext?.User is { } user) ? GetIdFromUser(user) : null;
+
+		public static int? GetIdFromUser(ClaimsPrincipal user)
 		{
-			var userId = httpContextAccessor.HttpContext?.User
-				.Claims.FirstOrDefault(c => c.Type == USERID_CLAIM_NAME)?.Value;
+			var sUserId = user.Claims.FirstOrDefault(c => c.Type == USERID_CLAIM_NAME)?.Value;
 
-			return (int.TryParse(userId, out int id)) ? id : null;
+			return (int.TryParse(sUserId, out int id)) ? id : null;
 		}
-
 	}
 }
 
