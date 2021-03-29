@@ -35,6 +35,8 @@ namespace WebApiSimplesCSharp
 
 	public static class IHostExtensions
 	{
+		private const string SENHA_INICIAL_ADMIN = "1234";
+
 		public static IHost CheckData(this IHost appHost)
 		{
 			using var scope = appHost.Services.CreateScope();
@@ -44,6 +46,9 @@ namespace WebApiSimplesCSharp
 
 			try {
 				DBInit.CheckMigrationsAsync(dbContext)
+					.Wait();
+
+				DBInit.CheckAdminUserAsync(dbContext, SENHA_INICIAL_ADMIN)
 					.Wait();
 			} catch (Exception ex) {
 				Console.ForegroundColor = ConsoleColor.Red;
