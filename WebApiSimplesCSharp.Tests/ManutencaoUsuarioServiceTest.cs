@@ -82,8 +82,8 @@ namespace WebApiSimplesCSharp.Tests
 
 			await manutencaoUsuario.Atualizar(id, atualizarUsuarioInputModel);
 
-			var usuarioCriado = dbContext.Usuarios.Find(id);
-			usuarioCriado!.Nome.Should().Be(USUARIO_ALTERACAO_NOME);
+			var usuarioAtualizado = dbContext.Usuarios.Find(id);
+			usuarioAtualizado!.Nome.Should().Be(USUARIO_ALTERACAO_NOME);
 		}
 		
 		[Fact]

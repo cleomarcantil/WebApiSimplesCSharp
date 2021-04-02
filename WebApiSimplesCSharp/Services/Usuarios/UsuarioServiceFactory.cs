@@ -1,5 +1,4 @@
 ﻿using WebApiSimplesCSharp.Data;
-using WebApiSimplesCSharp.Services.Usuarios.Consulta;
 
 namespace WebApiSimplesCSharp.Services.Usuarios
 {

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApiSimplesCSharp.Data;
 using WebApiSimplesCSharp.Data.Entities;
 
-namespace WebApiSimplesCSharp.Services.Usuarios.Consulta
+namespace WebApiSimplesCSharp.Services.Usuarios
 {
 	class ConsultaUsuarioService : IConsultaUsuarioService
 	{
