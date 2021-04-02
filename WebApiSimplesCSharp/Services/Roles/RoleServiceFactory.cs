@@ -7,5 +7,7 @@ namespace WebApiSimplesCSharp.Services.Roles
 		public static IConsultaRoleService CreateConsultaService(WebApiSimplesDbContext dbContext)
 			=> new ConsultaRoleService(dbContext);
 
+		public static IManutencaoRoleService CreateManutencaoService(WebApiSimplesDbContext dbContext)
+			=> new ManutencaoRoleService(dbContext);
 	}
 }

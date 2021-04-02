@@ -15,6 +15,7 @@ namespace WebApiSimplesCSharp.Services
 			services.AddScoped(f => UsuarioServiceFactory.CreateManutencaoService(f.GetDbContext()));
 
 			services.AddScoped(f => RoleServiceFactory.CreateConsultaService(f.GetDbContext()));
+			services.AddScoped(f => RoleServiceFactory.CreateManutencaoService(f.GetDbContext()));
 
 			services.AddScoped<IAuthService, AuthService>();
 		}
