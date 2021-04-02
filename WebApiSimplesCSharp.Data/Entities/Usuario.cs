@@ -29,6 +29,8 @@ namespace WebApiSimplesCSharp.Data.Entities
 			=> (HashSenha == GerarHashSenha(senha));
 
 
+		public virtual ICollection<Role> Roles { get; private set; } = new HashSet<Role>();
+
 		public static Usuario Create(string nome, string login, string senha)
 			=> new Usuario(default, nome, login, GerarHashSenha(senha));
 

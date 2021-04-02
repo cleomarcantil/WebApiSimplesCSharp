@@ -48,7 +48,9 @@ namespace WebApiSimplesCSharp
 				DBInit.CheckMigrationsAsync(dbContext)
 					.Wait();
 
-				DBInit.CheckAdminUserAsync(dbContext, SENHA_INICIAL_ADMIN)
+				var todasAsPolicies = PolicyDiscover.GetAllPolicyGroups().SelectMany(p => p.Policies).Select(p => p.Name);
+
+				DBInit.CheckAdminUserAndRoleAsync(dbContext, todasAsPolicies, SENHA_INICIAL_ADMIN)
 					.Wait();
 			} catch (Exception ex) {
 				Console.ForegroundColor = ConsoleColor.Red;

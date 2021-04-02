@@ -27,11 +27,14 @@ namespace WebApiSimplesCSharp.Data
 			base.OnModelCreating(modelBuilder);
 
 			modelBuilder.ApplyConfiguration(new UsuarioConfigMap());
+			modelBuilder.ApplyConfiguration(new RoleConfigMap());
+			modelBuilder.ApplyConfiguration(new RolePermissaoConfigMap());
 
 		}
 
 		public DbSet<Usuario> Usuarios { get; private set; }
 
+		public DbSet<Role> Roles { get; private set; }
 
 	}
 }
