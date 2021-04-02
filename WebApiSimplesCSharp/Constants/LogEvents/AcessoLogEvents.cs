@@ -15,6 +15,10 @@ namespace WebApiSimplesCSharp.Constants.LogEvents
 		public const int Autenticado = 2001;
 		public const int TokenAtualizado = 2002;
 
+		public const int RoleCriada = 3000;
+		public const int RoleAtualizada = 3001;
+		public const int RoleExcluida = 3002;
+
 		public const int Erro = 9999;
 	}
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using WebApiSimplesCSharp.Constants.LogEvents;
 using WebApiSimplesCSharp.Models.Common;
 using WebApiSimplesCSharp.Models.Roles;
 using WebApiSimplesCSharp.Services.Roles;
@@ -14,13 +16,16 @@ namespace WebApiSimplesCSharp.Controllers
 	public class RolesController : ControllerBase
 	{
 		private readonly IConsultaRoleService consultaRoleService;
+		private readonly IManutencaoRoleService manutencaoRoleService;
 		private readonly ILogger<RolesController> logger;
 
 		public RolesController(
 			IConsultaRoleService consultaRoleService,
+			IManutencaoRoleService manutencaoRoleService,
 			ILogger<RolesController> logger)
 		{
 			this.consultaRoleService = consultaRoleService;
+			this.manutencaoRoleService = manutencaoRoleService;
 			this.logger = logger;
 		}
 
@@ -55,6 +60,42 @@ namespace WebApiSimplesCSharp.Controllers
 			}
 
 			return role.ToViewModel();
+		}
+
+
+		[HttpPost]
+		public async Task<ActionResult<IdViewModel<int>>> Criar([FromBody] CriarRoleInputModel criarRoleInputModel)
+		{
+			int idGerado = await manutencaoRoleService.Criar(criarRoleInputModel);
+			logger.LogInformation(AcessoLogEvents.RoleCriada, "Role criada: {Id}", idGerado);
+
+			return CreatedAtAction(nameof(Get), new { id = idGerado }, new IdViewModel<int> { Id = idGerado });
+		}
+
+		[HttpPut("{id}")]
+		public async Task<ActionResult> Atualizar(int id, [FromBody] AtualizarRoleInputModel atualizarRoleInputModel)
+		{
+			if (!consultaRoleService.Exists(id)) {
+				return NotFound();
+			}
+
+			await manutencaoRoleService.Atualizar(id, atualizarRoleInputModel);
+			logger.LogInformation(AcessoLogEvents.RoleAtualizada, "Role atualizada: {Id}", id);
+
+			return NoContent();
+		}
+
+		[HttpDelete("{id}")]
+		public async Task<ActionResult> Excluir(int id)
+		{
+			if (!consultaRoleService.Exists(id)) {
+				return NotFound();
+			}
+
+			await manutencaoRoleService.Excluir(id);
+			logger.LogInformation(AcessoLogEvents.RoleExcluida, "Role excluída: {Id}", id);
+
+			return NoContent();
 		}
 
 	}
