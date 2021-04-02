@@ -116,7 +116,12 @@ namespace WebApiSimplesCSharp
 				UsuariosPolicies.Visualizar => true,
 				UsuariosPolicies.Criar => isAdmin,
 				UsuariosPolicies.Atualizar => isAdmin,
-				UsuariosPolicies.Excluir => isAdmin,
+				UsuariosPolicies.Excluir => isAdmin,				
+				RolesPolicies.Listar => true,
+				RolesPolicies.Visualizar => true,
+				RolesPolicies.Criar => isAdmin,
+				RolesPolicies.Atualizar => isAdmin,
+				RolesPolicies.Excluir => isAdmin,
 				_ => false,
 			};
 		}

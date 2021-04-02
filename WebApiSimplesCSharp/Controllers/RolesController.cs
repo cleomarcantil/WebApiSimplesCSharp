@@ -2,11 +2,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using WebApiSimplesCSharp.Constants.LogEvents;
 using WebApiSimplesCSharp.Models.Common;
 using WebApiSimplesCSharp.Models.Roles;
+using WebApiSimplesCSharp.Services.Constants.Policies;
 using WebApiSimplesCSharp.Services.Roles;
 
 namespace WebApiSimplesCSharp.Controllers
@@ -32,6 +34,7 @@ namespace WebApiSimplesCSharp.Controllers
 
 		public const int MAX_ITEMS_LIMIT = 1000;
 
+		[Authorize(RolesPolicies.Listar)]
 		[HttpGet]
 		public ListViewModel<RoleViewModel> Listar(string? q = null,
 			int? skip = null, [Range(1, MAX_ITEMS_LIMIT)] int? limit = null,
@@ -50,6 +53,7 @@ namespace WebApiSimplesCSharp.Controllers
 			};
 		}
 
+		[Authorize(RolesPolicies.Visualizar)]
 		[HttpGet("{id}")]
 		public ActionResult<RoleViewModel> Get(int id)
 		{
@@ -63,6 +67,7 @@ namespace WebApiSimplesCSharp.Controllers
 		}
 
 
+		[Authorize(RolesPolicies.Criar)]
 		[HttpPost]
 		public async Task<ActionResult<IdViewModel<int>>> Criar([FromBody] CriarRoleInputModel criarRoleInputModel)
 		{
@@ -72,6 +77,7 @@ namespace WebApiSimplesCSharp.Controllers
 			return CreatedAtAction(nameof(Get), new { id = idGerado }, new IdViewModel<int> { Id = idGerado });
 		}
 
+		[Authorize(RolesPolicies.Atualizar)]
 		[HttpPut("{id}")]
 		public async Task<ActionResult> Atualizar(int id, [FromBody] AtualizarRoleInputModel atualizarRoleInputModel)
 		{
@@ -85,6 +91,7 @@ namespace WebApiSimplesCSharp.Controllers
 			return NoContent();
 		}
 
+		[Authorize(RolesPolicies.Excluir)]
 		[HttpDelete("{id}")]
 		public async Task<ActionResult> Excluir(int id)
 		{
