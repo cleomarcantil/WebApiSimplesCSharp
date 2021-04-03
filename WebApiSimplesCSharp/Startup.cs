@@ -19,6 +19,7 @@ using WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization;
 using WebApiSimplesCSharp.Services;
 using WebApiSimplesCSharp.Services.Auth;
 using WebApiSimplesCSharp.Services.Constants.Policies;
+using WebApiSimplesCSharp.Services.Permissoes;
 using WebApiSimplesCSharp.Settings;
 
 namespace WebApiSimplesCSharp
@@ -72,7 +73,7 @@ namespace WebApiSimplesCSharp
 
 			services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-			services.AddAuthorizationWithApplicationPolicies<PolicyAuthorizationChecker>();
+			services.AddAuthorizationWithApplicationPolicies<PolicyAuthorizationCheckerAdapter>();
 
 			services.AddDbContext(Configuration.GetConnectionString("DefaultConnection"));
 
@@ -102,28 +103,14 @@ namespace WebApiSimplesCSharp
 		}
 	}
 
-	class PolicyAuthorizationChecker : IPolicyAuthorizationChecker
+	class PolicyAuthorizationCheckerAdapter : IPolicyAuthorizationChecker
 	{
-		public bool IsPolicyAuthorizedForUser(string policy, ClaimsPrincipal user)
-		{
-			var userId = AuthService.GetIdFromUser(user);
-			var isAdmin = (userId is 1);
+		private readonly IPermissaoCheckerService permissaoCheckerService;
 
-			// TODO: Validar policy para usuário dimanicamente...
-			return (policy) switch
-			{
-				UsuariosPolicies.Listar => true,
-				UsuariosPolicies.Visualizar => true,
-				UsuariosPolicies.Criar => isAdmin,
-				UsuariosPolicies.Atualizar => isAdmin,
-				UsuariosPolicies.Excluir => isAdmin,				
-				RolesPolicies.Listar => true,
-				RolesPolicies.Visualizar => true,
-				RolesPolicies.Criar => isAdmin,
-				RolesPolicies.Atualizar => isAdmin,
-				RolesPolicies.Excluir => isAdmin,
-				_ => false,
-			};
-		}
+		public PolicyAuthorizationCheckerAdapter(IPermissaoCheckerService permissaoCheckerService)
+			=> this.permissaoCheckerService = permissaoCheckerService;
+
+		public bool IsPolicyAuthorizedForUser(string policy, ClaimsPrincipal user)
+			=> (AuthService.GetIdFromUser(user) is int userId) && permissaoCheckerService.HasPermissao(policy, userId);
 	}
 }

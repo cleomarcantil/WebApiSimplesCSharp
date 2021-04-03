@@ -20,6 +20,7 @@ namespace WebApiSimplesCSharp.Data
 		{
 			base.OnConfiguring(optionsBuilder);
 
+			//optionsBuilder.LogTo(Console.WriteLine, minimumLevel: Microsoft.Extensions.Logging.LogLevel.Information);
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
