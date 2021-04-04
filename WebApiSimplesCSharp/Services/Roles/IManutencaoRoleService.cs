@@ -12,5 +12,9 @@ namespace WebApiSimplesCSharp.Services.Roles
 		Task Atualizar(int id, AtualizarRoleInputModel atualizarRoleInputModel);
 
 		Task Excluir(int id);
+
+		Task AdicionarPermissoes(int roleId, string[] permissoes);
+		Task RemoverPermissoes(int roleId, string[] permissoes);
+
 	}
 }

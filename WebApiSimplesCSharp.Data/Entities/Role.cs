@@ -24,22 +24,26 @@ namespace WebApiSimplesCSharp.Data.Entities
 		public ICollection<RolePermissao> _permissoes = new HashSet<RolePermissao>();
 		public virtual IEnumerable<RolePermissao> Permissoes => _permissoes.AsEnumerable();
 
-		public void AddPermissao(string nome)
+		public bool AddPermissao(string nome)
 		{
 			if (_permissoes.Any(p => p.Nome == nome)) {
-				throw new Exception($"Permissão já adicionada '{nome}'!");
+				return false;
 			}
 
 			_permissoes.Add(new RolePermissao(Id, nome));
+			return true;
 		}
 
-		public void RemovePermissao(string nome)
+		public bool RemovePermissao(string nome)
 		{
 			var prm = _permissoes.SingleOrDefault(p => p.Nome == nome);
 
-			if (prm is not null) {
-				_permissoes.Remove(prm);
+			if (prm is null) {
+				return false;
 			}
+
+			_permissoes.Remove(prm);
+			return true;
 		}
 
 		public virtual ICollection<Usuario> Usuarios { get; private set; } = new HashSet<Usuario>();

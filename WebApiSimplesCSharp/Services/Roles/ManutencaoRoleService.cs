@@ -1,6 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using WebApiSimplesCSharp.Data;
 using WebApiSimplesCSharp.Data.Entities;
 using WebApiSimplesCSharp.Exceptions;
@@ -11,10 +11,12 @@ namespace WebApiSimplesCSharp.Services.Roles
 	class ManutencaoRoleService : IManutencaoRoleService
 	{
 		private readonly WebApiSimplesDbContext dbContext;
+		private readonly IPermissaoValidationService permissaoValidationService;
 
-		public ManutencaoRoleService(WebApiSimplesDbContext dbContext)
+		public ManutencaoRoleService(WebApiSimplesDbContext dbContext, IPermissaoValidationService permissaoValidationService)
 		{
 			this.dbContext = dbContext;
+			this.permissaoValidationService = permissaoValidationService;
 		}
 
 		public async Task<int> Criar(CriarRoleInputModel criarRoleInputModel)
@@ -55,5 +57,44 @@ namespace WebApiSimplesCSharp.Services.Roles
 			dbContext.Remove(role);
 			await dbContext.SaveChangesAsync();
 		}
+
+		public async Task AdicionarPermissoes(int roleId, string[] permissoes)
+		{
+			var role = dbContext.Roles.Include(nameof(Role.Permissoes))
+				.Where(r => r.Id == roleId)
+				.SingleOrDefault();
+
+			if (role is null) {
+				throw new RoleInexistenteException($"Role inexistente: {roleId}!");
+			}
+
+			if (permissoes.Where(prm => !permissaoValidationService.IsValid(prm)) is var permissoesInvalidas && permissoesInvalidas.Any()) {
+				throw new PermissoesInvalidasException($"Permissões inválidas: {string.Join(", ", permissoesInvalidas)}!");
+			}
+
+			foreach (var prm in permissoes) {
+				role.AddPermissao(prm);
+			}
+
+			await dbContext.SaveChangesAsync();
+		}
+
+		public async Task RemoverPermissoes(int roleId, string[] permissoes)
+		{
+			var role = dbContext.Roles.Include(nameof(Role.Permissoes))
+				.Where(r => r.Id == roleId)
+				.SingleOrDefault();
+
+			if (role is null) {
+				throw new RoleInexistenteException($"Role inexistente: {roleId}!");
+			}
+
+			foreach (var prm in permissoes) {
+				role.RemovePermissao(prm);
+			}
+
+			await dbContext.SaveChangesAsync();
+		}
+
 	}
 }

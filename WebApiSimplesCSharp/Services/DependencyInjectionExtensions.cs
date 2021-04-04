@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using WebApiSimplesCSharp.Data;
+using WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization;
 using WebApiSimplesCSharp.Services.Auth;
 using WebApiSimplesCSharp.Services.Permissoes;
 using WebApiSimplesCSharp.Services.Roles;
@@ -16,7 +17,7 @@ namespace WebApiSimplesCSharp.Services
 			services.AddScoped(f => UsuarioServiceFactory.CreateManutencaoService(f.GetDbContext()));
 
 			services.AddScoped(f => RoleServiceFactory.CreateConsultaService(f.GetDbContext()));
-			services.AddScoped(f => RoleServiceFactory.CreateManutencaoService(f.GetDbContext()));
+			services.AddScoped(f => RoleServiceFactory.CreateManutencaoService(f.GetDbContext(), new PermissaoValidationService()));
 
 			services.AddScoped<IAuthService, AuthService>();
 			services.AddSingleton(f => PermissaoCheckerServiceFactory.Create(new DbContextSingletonScope(f)));
@@ -40,6 +41,15 @@ namespace WebApiSimplesCSharp.Services
 			public WebApiSimplesDbContext GetDbContext()
 				=> serviceScope.ServiceProvider.GetRequiredService<WebApiSimplesDbContext>();
 
+		}
+
+		#endregion
+
+		#region PermissaoValidationService
+
+		class PermissaoValidationService : IPermissaoValidationService
+		{
+			public bool IsValid(string nome) => PolicyDiscover.GetPolicyInfo(nome) is not null;
 		}
 
 		#endregion
