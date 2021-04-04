@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using WebApiSimplesCSharp.Constants.LogEvents;
+using WebApiSimplesCSharp.Data.Entities;
 using WebApiSimplesCSharp.Models.Common;
 using WebApiSimplesCSharp.Models.Roles;
 using WebApiSimplesCSharp.Services.Constants.Policies;
@@ -105,5 +107,65 @@ namespace WebApiSimplesCSharp.Controllers
 			return NoContent();
 		}
 
+
+		#region Permissoes
+
+		private const string VALIDATION_MESSAGE_POLICIES_REQUIRED = "Forneca um array com uma ou mais permissões!";
+		private const string VALIDATION_MESSAGE_POLICIES_MIN_LENGTH = "Especifique pelo menos uma permissão!";
+
+		[Authorize(RolesPolicies.Visualizar)]
+		[HttpGet("{roleId}/permissoes")]
+		public ActionResult<IEnumerable<string>> Permissoes(int roleId)
+		{
+			var role = consultaRoleService.GetById(roleId, new[] { nameof(Role.Permissoes) });
+
+			if (role is null) {
+				return NotFound();
+			}
+
+			var permissoes = role.Permissoes.Select(p => p.Nome);
+
+			return Ok(permissoes);
+		}
+
+
+		[Authorize(RolesPolicies.AdicionarPermissoes)]
+		[HttpPost("{roleId}/permissoes")]
+		public async Task<ActionResult> AddPermissoes(int roleId,
+			[FromBody,
+			Required(ErrorMessage = VALIDATION_MESSAGE_POLICIES_REQUIRED),
+			MinLength(1, ErrorMessage = VALIDATION_MESSAGE_POLICIES_MIN_LENGTH)]
+			string[] permissoes)
+		{
+			if (!consultaRoleService.Exists(roleId)) {
+				return NotFound();
+			}
+
+			await manutencaoRoleService.AdicionarPermissoes(roleId, permissoes);
+			logger.LogInformation(AcessoLogEvents.PermissaoAdicionaNaRole, "Permissão(ões) '{Permissoes}' adicionada(s) na role {Id}", string.Join(", ", permissoes), roleId);
+
+			return NoContent();
+		}
+
+
+		[Authorize(RolesPolicies.RemoverPermissoes)]
+		[HttpDelete("{roleId}/permissoes")]
+		public async Task<ActionResult> RemovePermissoes(int roleId,
+			[FromBody,
+			Required(ErrorMessage = VALIDATION_MESSAGE_POLICIES_REQUIRED),
+			MinLength(1, ErrorMessage = VALIDATION_MESSAGE_POLICIES_MIN_LENGTH)]
+			string[] permissoes)
+		{
+			if (!consultaRoleService.Exists(roleId)) {
+				return NotFound();
+			}
+
+			await manutencaoRoleService.RemoverPermissoes(roleId, permissoes);
+			logger.LogInformation(AcessoLogEvents.PermissaoRemovidaDaRole, "Permissão(ões) '{Permissoes}' removida(s) na role {Id}'", string.Join(", ", permissoes), roleId);
+
+			return NoContent();
+		}
+
+		#endregion
 	}
 }

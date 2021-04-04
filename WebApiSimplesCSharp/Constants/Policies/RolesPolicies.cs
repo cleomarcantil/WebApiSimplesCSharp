@@ -25,6 +25,14 @@ namespace WebApiSimplesCSharp.Services.Constants.Policies
 		[Description("Excluir role")]
 		public const string Excluir = GROUP_NAME + "." + nameof(Excluir);
 
+
+		[Description("Adicionar permissões à role")]
+		public const string AdicionarPermissoes = GROUP_NAME + "." + nameof(AdicionarPermissoes);
+
+		[Description("Remover permissões da role")]
+		public const string RemoverPermissoes = GROUP_NAME + "." + nameof(RemoverPermissoes);
+
+
 	}
 
 }

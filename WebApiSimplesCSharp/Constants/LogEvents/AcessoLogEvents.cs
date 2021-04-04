@@ -18,6 +18,8 @@ namespace WebApiSimplesCSharp.Constants.LogEvents
 		public const int RoleCriada = 3000;
 		public const int RoleAtualizada = 3001;
 		public const int RoleExcluida = 3002;
+		public const int PermissaoAdicionaNaRole = 3100;
+		public const int PermissaoRemovidaDaRole = 3101;
 
 		public const int Erro = 9999;
 	}
