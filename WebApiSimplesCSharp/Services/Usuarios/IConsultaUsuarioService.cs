@@ -9,11 +9,11 @@ namespace WebApiSimplesCSharp.Services.Usuarios
 	{
 		bool Exists(int id);
 
-		Usuario? GetById(int id);
+		Usuario? GetById(int id, IEnumerable<string>? includes = null);
 
-		Usuario? GetByLogin(string login);
+		Usuario? GetByLogin(string login, IEnumerable<string>? includes = null);
 
-		(IEnumerable<Usuario> items, int? totalItems) GetList(string? search = null, int skip = 0, int? limit = null, bool countTotal = false);
+		(IEnumerable<Usuario> items, int? totalItems) GetList(string? search = null, int skip = 0, int? limit = null, bool countTotal = false, IEnumerable<string>? includes = null);
 	
 	}
 

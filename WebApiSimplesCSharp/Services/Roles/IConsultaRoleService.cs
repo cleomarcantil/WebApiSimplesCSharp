@@ -9,11 +9,11 @@ namespace WebApiSimplesCSharp.Services.Roles
 	{
 		bool Exists(int id);
 
-		Role? GetById(int id);
+		Role? GetById(int id, IEnumerable<string>? includes = null);
 
-		Role? GetByNome(string nome);
+		Role? GetByNome(string nome, IEnumerable<string>? includes = null);
 
-		(IEnumerable<Role> items, int? totalItems) GetList(string? search = null, int skip = 0, int? limit = null, bool countTotal = false);
+		(IEnumerable<Role> items, int? totalItems) GetList(string? search = null, int skip = 0, int? limit = null, bool countTotal = false, IEnumerable<string>? includes = null);
 	
 	}
 }

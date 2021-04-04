@@ -19,19 +19,35 @@ namespace WebApiSimplesCSharp.Services.Usuarios
 		public bool Exists(int id)
 			=> dbContext.Usuarios.Any(u => u.Id == id);
 
-		public Usuario? GetById(int id)
-		{
-			return dbContext.Usuarios.Find(id);	
-		}
-
-		public Usuario? GetByLogin(string login)
-		{
-			return dbContext.Usuarios.SingleOrDefault(u => u.Login == login);
-		}
-
-		public (IEnumerable<Usuario> items, int? totalItems) GetList(string? search, int skip, int? limit, bool countTotal)
+		private IQueryable<Usuario> QueryUsuariosWithIncludes(IEnumerable<string>? includes)
 		{
 			var query = dbContext.Usuarios.AsNoTracking();
+
+			if (includes is not null) {
+				foreach (var inc in includes) {
+					query = query.Include(inc);
+				}
+			}
+
+			return query;
+		}
+
+
+		public Usuario? GetById(int id, IEnumerable<string>? includes = null)
+		{
+			return QueryUsuariosWithIncludes(includes)
+				.Where(u => u.Id == id)
+				.SingleOrDefault();
+		}
+
+		public Usuario? GetByLogin(string login, IEnumerable<string>? includes = null)
+		{
+			return QueryUsuariosWithIncludes(includes).SingleOrDefault(u => u.Login == login);
+		}
+
+		public (IEnumerable<Usuario> items, int? totalItems) GetList(string? search, int skip, int? limit, bool countTotal, IEnumerable<string>? includes = null)
+		{
+			var query = QueryUsuariosWithIncludes(includes);
 
 			if (search is not null) {
 				query = query.Where(u =>

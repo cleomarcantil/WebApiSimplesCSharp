@@ -19,19 +19,35 @@ namespace WebApiSimplesCSharp.Services.Roles
 		public bool Exists(int id)
 			=> dbContext.Roles.Any(u => u.Id == id);
 
-		public Role? GetById(int id)
-		{
-			return dbContext.Roles.Find(id);
-		}
-
-		public Role? GetByNome(string nome)
-		{
-			return dbContext.Roles.SingleOrDefault(r => r.Nome == nome);
-		}
-
-		public (IEnumerable<Role> items, int? totalItems) GetList(string? search, int skip, int? limit, bool countTotal)
+		private IQueryable<Role> QueryRolesWithIncludes(IEnumerable<string>? includes)
 		{
 			var query = dbContext.Roles.AsNoTracking();
+
+			if (includes is not null) {
+				foreach (var inc in includes) {
+					query = query.Include(inc);
+				}
+			}
+
+			return query;
+		}
+
+		public Role? GetById(int id, IEnumerable<string>? includes = null)
+		{
+			return QueryRolesWithIncludes(includes)
+				.Where(r => r.Id == id)
+				.SingleOrDefault();
+		}
+
+		public Role? GetByNome(string nome, IEnumerable<string>? includes = null)
+		{
+			return QueryRolesWithIncludes(includes)
+				.SingleOrDefault(r => r.Nome == nome);
+		}
+
+		public (IEnumerable<Role> items, int? totalItems) GetList(string? search, int skip, int? limit, bool countTotal, IEnumerable<string>? includes = null)
+		{
+			var query = QueryRolesWithIncludes(includes);
 
 			if (search is not null) {
 				query = query.Where(u =>
