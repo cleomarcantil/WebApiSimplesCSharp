@@ -109,6 +109,9 @@ namespace WebApiSimplesCSharp.Controllers
 
 		#region Roles
 
+		private const string VALIDATION_MESSAGE_ROLES_REQUIRED = "Forneca uma lista com uma ou mais roles!";
+		private const string VALIDATION_MESSAGE_ROLES_MIN_LENGTH = "Especifique pelo menos uma role!";
+
 		[Authorize(UsuariosPolicies.Visualizar)]
 		[HttpGet("{usuarioId}/roles")]
 		public ActionResult<IEnumerable<UsuarioRoleViewModel>> Roles(int usuarioId)
@@ -128,6 +131,41 @@ namespace WebApiSimplesCSharp.Controllers
 			return Ok(roles);
 		}
 
+		[Authorize(UsuariosPolicies.AdicionarRole)]
+		[HttpPost("{usuarioId}/roles")]
+		public async Task<ActionResult> AddRole(int usuarioId,
+			[FromBody,
+			Required(ErrorMessage = VALIDATION_MESSAGE_ROLES_REQUIRED),
+			MinLength(1, ErrorMessage = VALIDATION_MESSAGE_ROLES_MIN_LENGTH)]
+			int[] rolesIds)
+		{
+			if (!consultaUsuarioService.Exists(usuarioId)) {
+				return NotFound();
+			}
+
+			await manutencaoUsuarioService.AdicionarRoles(usuarioId, rolesIds);
+			logger.LogInformation(AcessoLogEvents.RoleAdicionadaNoUsuario, "Role(s) '{Roles}' associadas ao usuário {Id}", string.Join(", ", rolesIds), usuarioId);
+
+			return NoContent();
+		}
+
+		[Authorize(UsuariosPolicies.RemoverRole)]
+		[HttpDelete("{usuarioId}/roles")]
+		public async Task<ActionResult> RemoveRole(int usuarioId,
+			[FromBody,
+			Required(ErrorMessage = VALIDATION_MESSAGE_ROLES_REQUIRED),
+			MinLength(1, ErrorMessage = VALIDATION_MESSAGE_ROLES_MIN_LENGTH)]
+			int[] rolesIds)
+		{
+			if (!consultaUsuarioService.Exists(usuarioId)) {
+				return NotFound();
+			}
+
+			await manutencaoUsuarioService.RemoverRoles(usuarioId, rolesIds);
+			logger.LogInformation(AcessoLogEvents.RoleAdicionadaNoUsuario, "Role(s) '{Roles}' removidas do usuário {Id}", string.Join(", ", rolesIds), usuarioId);
+
+			return NoContent();
+		}
 
 		#endregion
 

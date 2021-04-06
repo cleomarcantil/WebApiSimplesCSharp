@@ -10,6 +10,8 @@ namespace WebApiSimplesCSharp.Constants.LogEvents
 		public const int UsuarioCriado = 1000;
 		public const int UsuarioAtualizado = 1001;
 		public const int UsuarioExcluido = 1002;
+		public const int RoleAdicionadaNoUsuario = 1100;
+		public const int RoleRemovidaDoUsuario = 1101;
 
 		public const int Autenticando = 2000;
 		public const int Autenticado = 2001;

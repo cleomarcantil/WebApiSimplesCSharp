@@ -14,5 +14,10 @@ namespace WebApiSimplesCSharp.Services.Usuarios
 		Task AlterarSenha(int id, string novaSenha);
 
 		Task Excluir(int id);
+
+		Task AdicionarRoles(int usuarioId, int[] rolesIds);
+
+		Task RemoverRoles(int usuarioId, int[] rolesIds);
+
 	}
 }

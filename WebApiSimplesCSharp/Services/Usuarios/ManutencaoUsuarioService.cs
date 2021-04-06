@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using WebApiSimplesCSharp.Data;
 using WebApiSimplesCSharp.Data.Entities;
 using WebApiSimplesCSharp.Exceptions;
@@ -66,5 +68,47 @@ namespace WebApiSimplesCSharp.Services.Usuarios
 			dbContext.Remove(usuario);
 			await dbContext.SaveChangesAsync();
 		}
+
+		public async Task AdicionarRoles(int usuarioId, int[] rolesIds)
+		{
+			var usuario = dbContext.Usuarios.Include(nameof(Usuario.Roles))
+				.Where(r => r.Id == usuarioId)
+				.SingleOrDefault();
+
+			if (usuario is null) {
+				throw new UsuarioInexistenteException($"Usuário inexistente: {usuarioId}!");
+			}
+
+			var rolesIdsJaAssociadas = usuario.Roles.Where(r => rolesIds.Contains(r.Id)).Select(r => r.Id).ToArray();
+
+			foreach (var roleId in rolesIds.Except(rolesIdsJaAssociadas)) {
+				var role = dbContext.Roles.Find(roleId) ?? throw new RoleInexistenteException($"Role inexistente: {roleId}!");
+				usuario.Roles.Add(role);
+			}
+
+			dbContext.Update(usuario);
+			await dbContext.SaveChangesAsync();
+		}
+
+		public async Task RemoverRoles(int usuarioId, int[] rolesIds)
+		{
+			var usuario = dbContext.Usuarios.Include(nameof(Usuario.Roles))
+				.Where(r => r.Id == usuarioId)
+				.SingleOrDefault();
+
+			if (usuario is null) {
+				throw new UsuarioInexistenteException($"Usuário inexistente: {usuarioId}!");
+			}
+
+			var rolesPraRemover = usuario.Roles.Where(r => rolesIds.Contains(r.Id));
+
+			foreach (var role in rolesPraRemover) {
+				usuario.Roles.Remove(role);
+			}
+
+			dbContext.Update(usuario);
+			await dbContext.SaveChangesAsync();
+		}
+
 	}
 }
