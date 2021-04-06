@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using WebApiSimplesCSharp.Constants.LogEvents;
+using WebApiSimplesCSharp.Data.Entities;
 using WebApiSimplesCSharp.Models.Common;
 using WebApiSimplesCSharp.Models.Usuarios;
 using WebApiSimplesCSharp.Services.Constants.Policies;
@@ -103,6 +105,31 @@ namespace WebApiSimplesCSharp.Controllers
 
 			return NoContent();
 		}
+
+
+		#region Roles
+
+		[Authorize(UsuariosPolicies.Visualizar)]
+		[HttpGet("{usuarioId}/roles")]
+		public ActionResult<IEnumerable<UsuarioRoleViewModel>> Roles(int usuarioId)
+		{
+			var usuario = consultaUsuarioService.GetById(usuarioId, new[] { nameof(Usuario.Roles) });
+
+			if (usuario is null) {
+				return NotFound();
+			}
+
+			var roles = usuario.Roles.Select(p => new UsuarioRoleViewModel
+			{
+				Id = p.Id,
+				Nome = p.Nome
+			});
+
+			return Ok(roles);
+		}
+
+
+		#endregion
 
 	}
 }

@@ -167,5 +167,29 @@ namespace WebApiSimplesCSharp.Controllers
 		}
 
 		#endregion
+
+		#region Usuários
+
+		[Authorize(RolesPolicies.Visualizar)]
+		[HttpGet("{roleId}/usuarios")]
+		public ActionResult<IEnumerable<RoleUsuarioViewModel>> Usuarios(int roleId)
+		{
+			var role = consultaRoleService.GetById(roleId, new[] { nameof(Role.Usuarios) });
+
+			if (role is null) {
+				return NotFound();
+			}
+
+			var usuarios = role.Usuarios.Select(p => new RoleUsuarioViewModel
+			{
+				Id = p.Id,
+				Nome = p.Nome
+			});
+
+			return Ok(usuarios);
+		}
+
+		#endregion
+
 	}
 }
