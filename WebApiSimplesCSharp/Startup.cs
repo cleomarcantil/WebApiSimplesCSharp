@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using HotChocolate;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -79,6 +80,12 @@ namespace WebApiSimplesCSharp
 
 			services.AddServices();
 
+
+			services.AddGraphQLServer()
+				.AddQueryType<GraphQL.Query>()
+				.AddType<GraphQL.UsuarioType>()
+				.AddType<GraphQL.RoleType>();
+				
 		}
 
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -99,6 +106,7 @@ namespace WebApiSimplesCSharp
 			app.UseEndpoints(endpoints => {
 				endpoints.MapControllers();
 				endpoints.MapRazorPages();
+				endpoints.MapGraphQL();
 			});
 		}
 	}
