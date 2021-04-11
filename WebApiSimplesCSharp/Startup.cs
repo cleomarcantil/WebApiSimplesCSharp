@@ -76,7 +76,7 @@ namespace WebApiSimplesCSharp
 
 			services.AddAuthorizationWithApplicationPolicies<PolicyAuthorizationCheckerAdapter>();
 
-			services.AddDbContext(Configuration.GetConnectionString("DefaultConnection"));
+			services.AddPooledDbContextFactory(Configuration.GetConnectionString("DefaultConnection"));
 
 			services.AddServices();
 

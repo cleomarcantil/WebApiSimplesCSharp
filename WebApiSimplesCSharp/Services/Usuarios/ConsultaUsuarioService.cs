@@ -11,10 +11,12 @@ namespace WebApiSimplesCSharp.Services.Usuarios
 	{
 		private readonly WebApiSimplesDbContext dbContext;
 
-		public ConsultaUsuarioService(WebApiSimplesDbContext dbContext)
+		public ConsultaUsuarioService(IDbContextFactory<WebApiSimplesDbContext> dbContextFactory)
 		{
-			this.dbContext = dbContext;
+			this.dbContext = dbContextFactory.CreateDbContext();
 		}
+
+		public void Dispose() => dbContext.Dispose();
 
 		public bool Exists(int id)
 			=> dbContext.Usuarios.Any(u => u.Id == id);

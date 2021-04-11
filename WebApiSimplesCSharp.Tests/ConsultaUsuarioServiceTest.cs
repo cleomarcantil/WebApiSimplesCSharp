@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -9,38 +10,22 @@ using Xunit;
 
 namespace WebApiSimplesCSharp.Tests
 {
-	public class ConsultaUsuarioServiceTest : IAsyncLifetime
+	public class ConsultaUsuarioServiceTest
 	{
-		private WebApiSimplesDbContext dbContext;
-
-		private const string TEST_SEARCH = "TestePesquisa";
-
-		public async Task InitializeAsync()
-		{
-			dbContext = await DBInit.CreateInMemoryDbContextAsync();
-
-			for (int n = 1; n <= 50; n++) {
-				await dbContext.Usuarios.AddAsync(Usuario.Create($"Usuário {n}", $"usuario{n}", "..."));
-			}
-			await dbContext.Usuarios.AddAsync(Usuario.Create($"{TEST_SEARCH}_1", $"{TEST_SEARCH}1", "..."));
-			await dbContext.Usuarios.AddAsync(Usuario.Create($"{TEST_SEARCH}_2", $"{TEST_SEARCH}2", "..."));
-
-			await dbContext.SaveChangesAsync();
-		}
-
-		public async Task DisposeAsync()
-		{
-			await dbContext.DisposeAsync();
-		}
-
 
 		[Fact]
 		public void Exists_UsuarioExistente_RetornaTrue()
 		{
-			var id = dbContext.Usuarios.First().Id;
-			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContext);
+			int idGerado = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				var usuarioTeste = Usuario.Create("Usuário Existente", "usuario_existente", "...");
+				dbContext.Usuarios.Add(usuarioTeste);
+				dbContext.SaveChanges();
+				idGerado = usuarioTeste.Id;
+			});
+			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContextFactory);
 
-			var result = consultaUsuario.Exists(id);
+			var result = consultaUsuario.Exists(idGerado);
 
 			result.Should().Be(true);
 		}
@@ -48,7 +33,8 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void Exists_UsuarioInexistente_RetornaFalse()
 		{
-			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContext);
+			var dbContextFactory = new DbContextFactory();
+			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaUsuario.Exists(9999999);
 
@@ -59,19 +45,26 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void GetById_Existente_RetornaUsuario()
 		{
-			var id = dbContext.Usuarios.First().Id;
-			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContext);
+			int idGerado = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				var usuarioTeste = Usuario.Create("Usuário Existente", "usuario_existente", "...");
+				dbContext.Usuarios.Add(usuarioTeste);
+				dbContext.SaveChanges();
+				idGerado = usuarioTeste.Id;
+			});
+			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContextFactory);
 
-			var result = consultaUsuario.GetById(id);
+			var result = consultaUsuario.GetById(idGerado);
 
 			result.Should().NotBeNull();
-			result!.Id.Should().Be(id);
+			result!.Id.Should().Be(idGerado);
 		}
 
 		[Fact]
 		public void GetById_Inexistente_RetornaNulo()
 		{
-			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContext);
+			var dbContextFactory = new DbContextFactory();
+			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaUsuario.GetById(9999999);
 
@@ -81,19 +74,24 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void GetByLogin_Existente_RetornaUsuario()
 		{
-			var login = dbContext.Usuarios.First().Login;
-			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContext);
+			const string TESTE_LOGIN_EXISTENTE = "usuario_teste_login_existente";
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				dbContext.Usuarios.Add(Usuario.Create("Usuário Existente", TESTE_LOGIN_EXISTENTE, "..."));
+				dbContext.SaveChanges();
+			});
+			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContextFactory);
 
-			var result = consultaUsuario.GetByLogin(login);
+			var result = consultaUsuario.GetByLogin(TESTE_LOGIN_EXISTENTE);
 
 			result.Should().NotBeNull();
-			result!.Login.Should().Be(login);
+			result!.Login.Should().Be(TESTE_LOGIN_EXISTENTE);
 		}
 
 		[Fact]
 		public void GetByLogin_Inexistente_RetornaNulo()
 		{
-			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContext);
+			var dbContextFactory = new DbContextFactory();
+			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaUsuario.GetByLogin("usuario-que-nao-existe");
 
@@ -104,8 +102,16 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void GetList_SemParametros_RetornaTodos()
 		{
-			var expectedItems = dbContext.Usuarios.ToList();
-			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContext);
+			List<Usuario> expectedItems = default!;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				for (int n = 1; n <= 10; n++) {
+					dbContext.Usuarios.Add(Usuario.Create($"Usuário {n}", $"usuario{n}", "..."));
+				}
+				dbContext.SaveChanges();
+				expectedItems = dbContext.Usuarios.ToList();
+			});
+
+			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaUsuario.GetList();
 
@@ -115,8 +121,19 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void GetList_Search_RetornaAlguns()
 		{
-			var expectedItems = dbContext.Usuarios.Where(u => u.Nome.StartsWith(TEST_SEARCH)).ToList();
-			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContext);
+			const string TEST_SEARCH = "TestePesquisa";
+			List<Usuario> expectedItems = default!;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				for (int n = 1; n <= 10; n++) {
+					dbContext.Usuarios.Add(Usuario.Create($"Usuário {n}", $"usuario{n}", "..."));
+				}
+				dbContext.Usuarios.Add(Usuario.Create($"{TEST_SEARCH}_1", $"{TEST_SEARCH}1", "..."));
+				dbContext.Usuarios.Add(Usuario.Create($"{TEST_SEARCH}_2", $"{TEST_SEARCH}2", "..."));
+				dbContext.SaveChanges();
+				expectedItems = dbContext.Usuarios.Where(u => u.Nome.StartsWith(TEST_SEARCH)).ToList();
+			});
+
+			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaUsuario.GetList(search: TEST_SEARCH);
 
@@ -130,8 +147,16 @@ namespace WebApiSimplesCSharp.Tests
 		[InlineData(4, null)]
 		public void GetList_SkipLimit_RetornaAlguns(int skip, int? limit)
 		{
-			var expectedCount = dbContext.Usuarios.Skip(skip).Take(limit ?? dbContext.Usuarios.Count()).Count();
-			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContext);
+			int expectedCount = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				for (int n = 1; n <= 10; n++) {
+					dbContext.Usuarios.Add(Usuario.Create($"Usuário {n}", $"usuario{n}", "..."));
+				}
+				dbContext.SaveChanges();
+				expectedCount = dbContext.Usuarios.Skip(skip).Take(limit ?? dbContext.Usuarios.Count()).Count();
+			});
+
+			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaUsuario.GetList(skip: skip, limit: limit);
 
@@ -141,8 +166,16 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void GetList_CountTotal_RetornaTotal()
 		{
-			var expectedCount = dbContext.Usuarios.Count();
-			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContext);
+			int expectedCount = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				for (int n = 1; n <= 10; n++) {
+					dbContext.Usuarios.Add(Usuario.Create($"Usuário {n}", $"usuario{n}", "..."));
+				}
+				dbContext.SaveChanges();
+				expectedCount = dbContext.Usuarios.Count();
+			});
+
+			var consultaUsuario = UsuarioServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaUsuario.GetList(countTotal: true);
 

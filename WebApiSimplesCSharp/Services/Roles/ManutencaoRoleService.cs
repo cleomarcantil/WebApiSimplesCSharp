@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using WebApiSimplesCSharp.Data;
@@ -13,11 +14,14 @@ namespace WebApiSimplesCSharp.Services.Roles
 		private readonly WebApiSimplesDbContext dbContext;
 		private readonly IPermissaoValidationService permissaoValidationService;
 
-		public ManutencaoRoleService(WebApiSimplesDbContext dbContext, IPermissaoValidationService permissaoValidationService)
+		public ManutencaoRoleService(IDbContextFactory<WebApiSimplesDbContext> dbContextFactory, IPermissaoValidationService permissaoValidationService)
 		{
-			this.dbContext = dbContext;
+			this.dbContext = dbContextFactory.CreateDbContext();
 			this.permissaoValidationService = permissaoValidationService;
 		}
+
+		public void Dispose() => dbContext.Dispose();
+
 
 		public async Task<int> Criar(CriarRoleInputModel criarRoleInputModel)
 		{

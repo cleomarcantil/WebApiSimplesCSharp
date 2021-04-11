@@ -1,9 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using WebApiSimplesCSharp.Data;
 using WebApiSimplesCSharp.Data.Entities;
 using WebApiSimplesCSharp.Exceptions;
 using WebApiSimplesCSharp.Models.Roles;
@@ -12,26 +10,8 @@ using Xunit;
 
 namespace WebApiSimplesCSharp.Tests
 {
-	public class ManutencaoRoleServiceTest : IAsyncLifetime
+	public class ManutencaoRoleServiceTest
 	{
-		private WebApiSimplesDbContext dbContext;
-
-		public async Task InitializeAsync()
-		{
-			dbContext = await DBInit.CreateInMemoryDbContextAsync();
-
-			for (int n = 1; n <= 10; n++) {
-				await dbContext.Roles.AddAsync(Role.Create($"Role {n}", "..."));
-			}
-
-			await dbContext.SaveChangesAsync();
-		}
-
-		public async Task DisposeAsync()
-		{
-			await dbContext.DisposeAsync();
-		}
-
 
 		private class FakePermissaoValidationService : IPermissaoValidationService
 		{
@@ -44,7 +24,8 @@ namespace WebApiSimplesCSharp.Tests
 		{
 			const string NOVA_ROLE_NOME = "Nova Role";
 			const string NOVA_ROLE_DESCRICAO = "Nova Role...";
-			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContext, new FakePermissaoValidationService());
+			var dbContextFactory = new DbContextFactory();
+			using var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContextFactory, new FakePermissaoValidationService());
 			var criarRoleInputModel = new CriarRoleInputModel
 			{
 				Nome = NOVA_ROLE_NOME,
@@ -53,7 +34,7 @@ namespace WebApiSimplesCSharp.Tests
 
 			var resultId = await manutencaoRole.Criar(criarRoleInputModel);
 
-			var roleCriada = dbContext.Roles.Find(resultId);
+			var roleCriada = dbContextFactory.LastCreatedDbContext.Roles.Find(resultId);
 			roleCriada.Should().NotBeNull();
 			roleCriada!.Nome.Should().Be(NOVA_ROLE_NOME);
 			roleCriada!.Descricao.Should().Be(NOVA_ROLE_DESCRICAO);
@@ -62,11 +43,15 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public async Task Criar_NomeDuplicado_GeraErro()
 		{
-			var nomeExistente = dbContext.Roles.First().Nome;
-			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContext, new FakePermissaoValidationService());
+			const string TESTE_NOME_EXISTENTE = "Role_TesteNomeExistente";
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				dbContext.Roles.Add(Role.Create(TESTE_NOME_EXISTENTE, "..."));
+				dbContext.SaveChanges();
+			});
+			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContextFactory, new FakePermissaoValidationService());
 			var criarRoleInputModel = new CriarRoleInputModel
 			{
-				Nome = nomeExistente,
+				Nome = TESTE_NOME_EXISTENTE,
 				Descricao = "Teste existente",
 			};
 
@@ -78,23 +63,30 @@ namespace WebApiSimplesCSharp.Tests
 		public async Task Atualizar_Role_DeveEstarNoDbContext()
 		{
 			const string ROLE_ALTERACAO_NOME = "Role Alteração";
-			var id = dbContext.Roles.First().Id;
-			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContext, new FakePermissaoValidationService());
+			int idGerado = default;
+			var dbContextFactory = new DbContextFactory(dbContext => { 
+				var roleTeste = Role.Create(ROLE_ALTERACAO_NOME, "...");
+				dbContext.Roles.Add(roleTeste);
+				dbContext.SaveChanges();
+				idGerado = roleTeste.Id;
+			});
+			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContextFactory, new FakePermissaoValidationService());
 			var atualizarRoleInputModel = new AtualizarRoleInputModel
 			{
 				Nome = ROLE_ALTERACAO_NOME,
 			};
 
-			await manutencaoRole.Atualizar(id, atualizarRoleInputModel);
+			await manutencaoRole.Atualizar(idGerado, atualizarRoleInputModel);
 
-			var roleAtualizada = dbContext.Roles.Find(id);
+			var roleAtualizada = dbContextFactory.LastCreatedDbContext.Roles.Find(idGerado);
 			roleAtualizada!.Nome.Should().Be(ROLE_ALTERACAO_NOME);
 		}
 		
 		[Fact]
 		public async Task Atualizar_RoleInexistente_GeraErro()
 		{
-			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContext, new FakePermissaoValidationService());
+			var dbContextFactory = new DbContextFactory();
+			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContextFactory, new FakePermissaoValidationService());
 			var atualizarRoleInputModel = new AtualizarRoleInputModel
 			{
 				Nome = "...",
@@ -107,12 +99,18 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public async Task Excluir_Role_NaoDeveMaisEstarNoDbContext()
 		{
-			var id = dbContext.Roles.Skip(1).First().Id;
-			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContext, new FakePermissaoValidationService());
+			int idGerado = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				var roleTeste = Role.Create("Role Exclusão", "...");
+				dbContext.Roles.Add(roleTeste);
+				dbContext.SaveChanges();
+				idGerado = roleTeste.Id;
+			});
+			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContextFactory, new FakePermissaoValidationService());
 
-			await manutencaoRole.Excluir(id);
+			await manutencaoRole.Excluir(idGerado);
 
-			var usuarioRemovido = dbContext.Roles.SingleOrDefault(r => r.Id == id);
+			var usuarioRemovido = dbContextFactory.LastCreatedDbContext.Roles.SingleOrDefault(r => r.Id == idGerado);
 
 			usuarioRemovido.Should().BeNull();
 		}
@@ -120,7 +118,8 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public async Task Excluir_RoleInexistente_GeraErro()
 		{
-			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContext, new FakePermissaoValidationService());
+			var dbContextFactory = new DbContextFactory();
+			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContextFactory, new FakePermissaoValidationService());
 
 			await manutencaoRole.Invoking(async s => await s.Excluir(99999999))
 				.Should().ThrowAsync<RoleInexistenteException>();
@@ -131,32 +130,41 @@ namespace WebApiSimplesCSharp.Tests
 		public async Task AdiconarPermissoes_DeveEstarNaRole()
 		{
 			var permissoesParaAdicionar = new[] { "prmX", "prmY", "prmZ" };
-
-			var id = dbContext.Roles.First().Id;
-			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContext, new FakePermissaoValidationService());
+			int idGerado = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				var roleTeste = Role.Create("Role Permissão", "...");
+				dbContext.Roles.Add(roleTeste);
+				dbContext.SaveChanges();
+				idGerado = roleTeste.Id;
+			});
+			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContextFactory, new FakePermissaoValidationService());
 			
-			await manutencaoRole.AdicionarPermissoes(id, permissoesParaAdicionar);
+			await manutencaoRole.AdicionarPermissoes(idGerado, permissoesParaAdicionar);
 
-			var roleAlterada = dbContext.Roles.Include(r => r.Permissoes).Single(r => r.Id == id);
+			var roleAlterada = dbContextFactory.LastCreatedDbContext.Roles.Include(r => r.Permissoes).Single(r => r.Id == idGerado);
 			roleAlterada.Permissoes.Select(p => p.Nome).Should().Contain(permissoesParaAdicionar);
 		}
 
 		[Fact]
 		public async Task RemoverPermissoes_DeveEstarNaRole()
 		{
-			dbContext.Roles.First().AddPermissao("prmX");
-			dbContext.Roles.First().AddPermissao("prmY");
-			dbContext.Roles.First().AddPermissao("prmZ");
-			dbContext.SaveChanges();
-
 			var permissoesParaRemover = new[] { "prmX", "prmZ" };
+			int idGerado = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				var roleTeste = Role.Create("Role Permissão", "...");
+				roleTeste.AddPermissao("prmX");
+				roleTeste.AddPermissao("prmY");
+				roleTeste.AddPermissao("prmZ");
+				dbContext.Roles.Add(roleTeste);
+				dbContext.SaveChanges();
+				idGerado = roleTeste.Id;
+			});
 
-			var id = dbContext.Roles.First().Id;
-			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContext, new FakePermissaoValidationService());
+			var manutencaoRole = RoleServiceFactory.CreateManutencaoService(dbContextFactory, new FakePermissaoValidationService());
 			
-			await manutencaoRole.RemoverPermissoes(id, permissoesParaRemover);
+			await manutencaoRole.RemoverPermissoes(idGerado, permissoesParaRemover);
 
-			var roleAlterada = dbContext.Roles.Include(r => r.Permissoes).Single(r => r.Id == id);
+			var roleAlterada = dbContextFactory.LastCreatedDbContext.Roles.Include(r => r.Permissoes).Single(r => r.Id == idGerado);
 			roleAlterada.Permissoes.Select(p => p.Nome).Should().NotContain(permissoesParaRemover);
 			roleAlterada.Permissoes.Select(p => p.Nome).Should().Contain("prmY");
 		}

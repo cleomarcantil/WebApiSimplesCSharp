@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -9,38 +10,22 @@ using Xunit;
 
 namespace WebApiSimplesCSharp.Tests
 {
-	public class ConsultaRoleServiceTest : IAsyncLifetime
+	public class ConsultaRoleServiceTest
 	{
-		private WebApiSimplesDbContext dbContext;
-
-		private const string TEST_SEARCH = "TestePesquisa";
-
-		public async Task InitializeAsync()
-		{
-			dbContext = await DBInit.CreateInMemoryDbContextAsync();
-
-			for (int n = 1; n <= 50; n++) {
-				await dbContext.Roles.AddAsync(Role.Create($"Role {n}", "..."));
-			}
-			await dbContext.Roles.AddAsync(Role.Create($"{TEST_SEARCH}_1", "..."));
-			await dbContext.Roles.AddAsync(Role.Create($"{TEST_SEARCH}_2", "..."));
-
-			await dbContext.SaveChangesAsync();
-		}
-
-		public async Task DisposeAsync()
-		{
-			await dbContext.DisposeAsync();
-		}
-
 
 		[Fact]
 		public void Exists_RoleExistente_RetornaTrue()
 		{
-			var id = dbContext.Roles.First().Id;
-			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContext);
+			int idGerado = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				var roleTeste = Role.Create("Role Existente", "...");
+				dbContext.Roles.Add(roleTeste);
+				dbContext.SaveChanges();
+				idGerado = roleTeste.Id;
+			});
+			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContextFactory);
 
-			var result = consultaRole.Exists(id);
+			var result = consultaRole.Exists(idGerado);
 
 			result.Should().Be(true);
 		}
@@ -48,7 +33,8 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void Exists_RoleInexistente_RetornaFalse()
 		{
-			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContext);
+			var dbContextFactory = new DbContextFactory();
+			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaRole.Exists(9999999);
 
@@ -59,19 +45,26 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void GetById_Existente_RetornaRole()
 		{
-			var id = dbContext.Roles.First().Id;
-			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContext);
+			int idGerado = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				var roleTeste = Role.Create("Role Existente", "...");
+				dbContext.Roles.Add(roleTeste);
+				dbContext.SaveChanges();
+				idGerado = roleTeste.Id;
+			});
+			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContextFactory);
 
-			var result = consultaRole.GetById(id);
+			var result = consultaRole.GetById(idGerado);
 
 			result.Should().NotBeNull();
-			result!.Id.Should().Be(id);
+			result!.Id.Should().Be(idGerado);
 		}
 
 		[Fact]
 		public void GetById_Inexistente_RetornaNulo()
 		{
-			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContext);
+			var dbContextFactory = new DbContextFactory();
+			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaRole.GetById(9999999);
 
@@ -81,19 +74,24 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void GetByNome_Existente_RetornaUsuario()
 		{
-			var nome = dbContext.Roles.First().Nome;
-			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContext);
+			const string TESTE_NOME_EXISTENTE = "Role_TesteNomeExistente";
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				dbContext.Roles.Add(Role.Create(TESTE_NOME_EXISTENTE, "..."));
+				dbContext.SaveChanges();
+			});
+			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContextFactory);
 
-			var result = consultaRole.GetByNome(nome);
+			var result = consultaRole.GetByNome(TESTE_NOME_EXISTENTE);
 
 			result.Should().NotBeNull();
-			result!.Nome.Should().Be(nome);
+			result!.Nome.Should().Be(TESTE_NOME_EXISTENTE);
 		}
 
 		[Fact]
 		public void GetByNome_Inexistente_RetornaNulo()
 		{
-			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContext);
+			var dbContextFactory = new DbContextFactory();
+			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaRole.GetByNome("role-que-nao-existe");
 
@@ -104,8 +102,16 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void GetList_SemParametros_RetornaTodos()
 		{
-			var expectedItems = dbContext.Roles.ToList();
-			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContext);
+			List<Role> expectedItems = default!;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				for (int n = 1; n <= 10; n++) {
+					dbContext.Roles.Add(Role.Create($"Role {n}", "..."));
+				}
+				dbContext.SaveChanges();
+				expectedItems = dbContext.Roles.ToList();
+			});
+
+			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaRole.GetList();
 
@@ -115,8 +121,19 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void GetList_Search_RetornaAlguns()
 		{
-			var expectedItems = dbContext.Roles.Where(u => u.Nome.StartsWith(TEST_SEARCH)).ToList();
-			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContext);
+			const string TEST_SEARCH = "TestePesquisa";
+			List<Role> expectedItems = default!;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				for (int n = 1; n <= 10; n++) {
+					dbContext.Roles.Add(Role.Create($"Role {n}", "..."));
+				}
+				dbContext.Roles.Add(Role.Create($"{TEST_SEARCH}_1", "..."));
+				dbContext.Roles.Add(Role.Create($"{TEST_SEARCH}_2", "..."));
+				dbContext.SaveChanges();
+				expectedItems = dbContext.Roles.Where(u => u.Nome.StartsWith(TEST_SEARCH)).ToList();
+			});
+
+			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaRole.GetList(search: TEST_SEARCH);
 
@@ -130,8 +147,16 @@ namespace WebApiSimplesCSharp.Tests
 		[InlineData(4, null)]
 		public void GetList_SkipLimit_RetornaAlguns(int skip, int? limit)
 		{
-			var expectedCount = dbContext.Roles.Skip(skip).Take(limit ?? dbContext.Roles.Count()).Count();
-			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContext);
+			int expectedCount = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				for (int n = 1; n <= 10; n++) {
+					dbContext.Roles.Add(Role.Create($"Role {n}", "..."));
+				}
+				dbContext.SaveChanges();
+				expectedCount = dbContext.Roles.Skip(skip).Take(limit ?? dbContext.Roles.Count()).Count();
+			});
+
+			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaRole.GetList(skip: skip, limit: limit);
 
@@ -141,8 +166,16 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public void GetList_CountTotal_RetornaTotal()
 		{
-			var expectedCount = dbContext.Roles.Count();
-			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContext);
+			int expectedCount = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				for (int n = 1; n <= 10; n++) {
+					dbContext.Roles.Add(Role.Create($"Role {n}", "..."));
+				}
+				dbContext.SaveChanges();
+				expectedCount = dbContext.Roles.Count();
+			});
+
+			var consultaRole = RoleServiceFactory.CreateConsultaService(dbContextFactory);
 
 			var result = consultaRole.GetList(countTotal: true);
 

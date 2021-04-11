@@ -11,33 +11,16 @@ using Xunit;
 
 namespace WebApiSimplesCSharp.Tests
 {
-	public class ManutencaoUsuarioServiceTest : IAsyncLifetime
+	public class ManutencaoUsuarioServiceTest
 	{
-		private WebApiSimplesDbContext dbContext;
-
-		public async Task InitializeAsync()
-		{
-			dbContext = await DBInit.CreateInMemoryDbContextAsync();
-
-			for (int n = 1; n <= 10; n++) {
-				await dbContext.Usuarios.AddAsync(Usuario.Create($"Usuário {n}", $"usuario{n}", "..."));
-			}
-
-			await dbContext.SaveChangesAsync();
-		}
-
-		public async Task DisposeAsync()
-		{
-			await dbContext.DisposeAsync();
-		}
-
 
 		[Fact]
 		public async Task Criar_NovoUsuario_DeveEstarNoDbContext()
 		{
 			const string NOVO_USUARIO_NOME = "Novo Usuario";
 			const string NOVO_USUARIO_LOGIN = "novousuario";
-			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContext);
+			var dbContextFactory = new DbContextFactory();
+			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContextFactory);
 			var criarUsuarioInputModel = new CriarUsuarioInputModel
 			{
 				Login = NOVO_USUARIO_LOGIN,
@@ -47,7 +30,7 @@ namespace WebApiSimplesCSharp.Tests
 
 			var resultId = await manutencaoUsuario.Criar(criarUsuarioInputModel);
 
-			var usuarioCriado = dbContext.Usuarios.Find(resultId);
+			var usuarioCriado = dbContextFactory.LastCreatedDbContext.Usuarios.Find(resultId);
 			usuarioCriado.Should().NotBeNull();
 			usuarioCriado!.Nome.Should().Be(NOVO_USUARIO_NOME);
 			usuarioCriado!.Login.Should().Be(NOVO_USUARIO_LOGIN);
@@ -56,11 +39,15 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public async Task Criar_LoginDuplicado_GeraErro()
 		{
-			var loginExistente = dbContext.Usuarios.First().Login;
-			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContext);
+			const string TESTE_LOGIN_EXISTENTE = "usuario_teste_login_existente";
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				dbContext.Usuarios.Add(Usuario.Create("Usuário", TESTE_LOGIN_EXISTENTE, "..."));
+				dbContext.SaveChanges();
+			});
+			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContextFactory);
 			var criarUsuarioInputModel = new CriarUsuarioInputModel
 			{
-				Login = loginExistente,
+				Login = TESTE_LOGIN_EXISTENTE,
 				Nome = "Teste existente",
 				Senha = "...",
 			};
@@ -73,23 +60,30 @@ namespace WebApiSimplesCSharp.Tests
 		public async Task Atualizar_Usuario_DeveEstarNoDbContext()
 		{
 			const string USUARIO_ALTERACAO_NOME = "Usuário Alteração";
-			var id = dbContext.Usuarios.First().Id;
-			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContext);
+			int idGerado = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				var usuarioTeste = Usuario.Create("Usuário", USUARIO_ALTERACAO_NOME, "...");
+				dbContext.Usuarios.Add(usuarioTeste);
+				dbContext.SaveChanges();
+				idGerado = usuarioTeste.Id;
+			});
+			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContextFactory);
 			var atualizarUsuarioInputModel = new AtualizarUsuarioInputModel
 			{
 				Nome = USUARIO_ALTERACAO_NOME,
 			};
 
-			await manutencaoUsuario.Atualizar(id, atualizarUsuarioInputModel);
+			await manutencaoUsuario.Atualizar(idGerado, atualizarUsuarioInputModel);
 
-			var usuarioAtualizado = dbContext.Usuarios.Find(id);
+			var usuarioAtualizado = dbContextFactory.LastCreatedDbContext.Usuarios.Find(idGerado);
 			usuarioAtualizado!.Nome.Should().Be(USUARIO_ALTERACAO_NOME);
 		}
 		
 		[Fact]
 		public async Task Atualizar_UsuarioInexistente_GeraErro()
 		{
-			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContext);
+			var dbContextFactory = new DbContextFactory();
+			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContextFactory);
 			var atualizarUsuarioInputModel = new AtualizarUsuarioInputModel
 			{
 				Nome = "...",
@@ -102,12 +96,18 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public async Task Excluir_Usuario_NaoDeveMaisEstarNoDbContext()
 		{
-			var id = dbContext.Usuarios.Skip(1).First().Id;
-			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContext);
+			int idGerado = default;
+			var dbContextFactory = new DbContextFactory(dbContext => {
+				var usuarioTeste = Usuario.Create("Usuário Exclusão", "usuario_exclusao", "...");
+				dbContext.Usuarios.Add(usuarioTeste);
+				dbContext.SaveChanges();
+				idGerado = usuarioTeste.Id;
+			});
+			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContextFactory);
 
-			await manutencaoUsuario.Excluir(id);
+			await manutencaoUsuario.Excluir(idGerado);
 
-			var usuarioRemovido = dbContext.Usuarios.SingleOrDefault(u => u.Id == id);
+			var usuarioRemovido = dbContextFactory.LastCreatedDbContext.Usuarios.SingleOrDefault(u => u.Id == idGerado);
 
 			usuarioRemovido.Should().BeNull();
 		}
@@ -115,7 +115,8 @@ namespace WebApiSimplesCSharp.Tests
 		[Fact]
 		public async Task Excluir_UsuarioInexistente_GeraErro()
 		{
-			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContext);
+			var dbContextFactory = new DbContextFactory();
+			var manutencaoUsuario = UsuarioServiceFactory.CreateManutencaoService(dbContextFactory);
 
 			await manutencaoUsuario.Invoking(async s => await s.Excluir(99999999))
 				.Should().ThrowAsync<UsuarioInexistenteException>();
