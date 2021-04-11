@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebApiSimplesCSharp.Data.Entities;
 
 namespace WebApiSimplesCSharp.Services.Roles
 {
-	public interface IConsultaRoleService
+	public interface IConsultaRoleService : IDisposable
 	{
 		bool Exists(int id);
 

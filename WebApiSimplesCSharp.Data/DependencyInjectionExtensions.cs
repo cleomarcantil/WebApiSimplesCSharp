@@ -10,10 +10,9 @@ namespace WebApiSimplesCSharp.Data
 {
 	public static class DependencyInjectionExtensions
 	{
-		public static void AddDbContext(this IServiceCollection services, string connectionString)
+		public static void AddPooledDbContextFactory(this IServiceCollection services, string connectionString)
 		{
-			services.AddDbContext<WebApiSimplesDbContext>(options => options.UseSqlServer(connectionString));
+			services.AddPooledDbContextFactory<WebApiSimplesDbContext>(options => options.UseSqlServer(connectionString));
 		}
-
 	}
 }

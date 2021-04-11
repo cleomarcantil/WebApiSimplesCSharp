@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebApiSimplesCSharp.Data;
@@ -42,7 +43,8 @@ namespace WebApiSimplesCSharp
 			using var scope = appHost.Services.CreateScope();
 			var services = scope.ServiceProvider;
 
-			var dbContext = services.GetRequiredService<WebApiSimplesDbContext>();
+			var dbContextFactory = services.GetRequiredService<IDbContextFactory<WebApiSimplesDbContext>>();
+			using var dbContext = dbContextFactory.CreateDbContext();
 
 			try {
 				DBInit.CheckMigrationsAsync(dbContext)
@@ -54,7 +56,7 @@ namespace WebApiSimplesCSharp
 					.Wait();
 			} catch (Exception ex) {
 				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine($"Erro na migra��o: {ex.Message}");
+				Console.WriteLine($"Erro na migração: {ex.Message}");
 				throw;
 			}
 

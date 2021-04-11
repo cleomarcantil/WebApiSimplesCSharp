@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WebApiSimplesCSharp.Data;
 using WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization;
@@ -13,37 +14,19 @@ namespace WebApiSimplesCSharp.Services
 	{
 		public static void AddServices(this IServiceCollection services)
 		{
-			services.AddScoped(f => UsuarioServiceFactory.CreateConsultaService(f.GetDbContext()));
-			services.AddScoped(f => UsuarioServiceFactory.CreateManutencaoService(f.GetDbContext()));
+			services.AddScoped(f => UsuarioServiceFactory.CreateConsultaService(f.GetDbContextFactory()));
+			services.AddScoped(f => UsuarioServiceFactory.CreateManutencaoService(f.GetDbContextFactory()));
 
-			services.AddScoped(f => RoleServiceFactory.CreateConsultaService(f.GetDbContext()));
-			services.AddScoped(f => RoleServiceFactory.CreateManutencaoService(f.GetDbContext(), new PermissaoValidationService()));
+			services.AddScoped(f => RoleServiceFactory.CreateConsultaService(f.GetDbContextFactory()));
+			services.AddScoped(f => RoleServiceFactory.CreateManutencaoService(f.GetDbContextFactory(), new PermissaoValidationService()));
 
 			services.AddScoped<IAuthService, AuthService>();
-			services.AddSingleton(f => PermissaoCheckerServiceFactory.Create(new DbContextSingletonScope(f)));
+			services.AddSingleton(f => PermissaoCheckerServiceFactory.Create(f.GetDbContextFactory()));
 		}
 
-		private static WebApiSimplesDbContext GetDbContext(this IServiceProvider sp)
-			=> sp.GetRequiredService<WebApiSimplesDbContext>();
+		private static IDbContextFactory<WebApiSimplesDbContext> GetDbContextFactory(this IServiceProvider sp)
+			=> sp.GetRequiredService<IDbContextFactory<WebApiSimplesDbContext>>();
 
-
-		#region DbContextSingletonScope
-
-		private class DbContextSingletonScope : IDbContextSingletonProvider, IDisposable
-		{
-			private readonly IServiceScope serviceScope;
-
-			public DbContextSingletonScope(IServiceProvider serviceProvider)
-				=> this.serviceScope = serviceProvider.CreateScope();
-
-			void IDisposable.Dispose() => serviceScope.Dispose();
-
-			public WebApiSimplesDbContext GetDbContext()
-				=> serviceScope.ServiceProvider.GetRequiredService<WebApiSimplesDbContext>();
-
-		}
-
-		#endregion
 
 		#region PermissaoValidationService
 

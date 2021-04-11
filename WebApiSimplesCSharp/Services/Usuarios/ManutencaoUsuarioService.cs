@@ -14,10 +14,12 @@ namespace WebApiSimplesCSharp.Services.Usuarios
 	{
 		private readonly WebApiSimplesDbContext dbContext;
 
-		public ManutencaoUsuarioService(WebApiSimplesDbContext dbContext)
+		public ManutencaoUsuarioService(IDbContextFactory<WebApiSimplesDbContext> dbContextFactory)
 		{
-			this.dbContext = dbContext;
+			this.dbContext = dbContextFactory.CreateDbContext();
 		}
+
+		public void Dispose() => dbContext.Dispose();
 
 		public async Task<int> Criar(CriarUsuarioInputModel criarUsuarioInputModel)
 		{

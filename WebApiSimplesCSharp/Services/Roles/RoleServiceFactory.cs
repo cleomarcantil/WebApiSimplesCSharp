@@ -1,13 +1,14 @@
-﻿using WebApiSimplesCSharp.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using WebApiSimplesCSharp.Data;
 
 namespace WebApiSimplesCSharp.Services.Roles
 {
 	public static class RoleServiceFactory
 	{
-		public static IConsultaRoleService CreateConsultaService(WebApiSimplesDbContext dbContext)
-			=> new ConsultaRoleService(dbContext);
+		public static IConsultaRoleService CreateConsultaService(IDbContextFactory<WebApiSimplesDbContext> dbContextFactory)
+			=> new ConsultaRoleService(dbContextFactory);
 
-		public static IManutencaoRoleService CreateManutencaoService(WebApiSimplesDbContext dbContext, IPermissaoValidationService permissaoValidationService)
-			=> new ManutencaoRoleService(dbContext, permissaoValidationService);
+		public static IManutencaoRoleService CreateManutencaoService(IDbContextFactory<WebApiSimplesDbContext> dbContextFactory, IPermissaoValidationService permissaoValidationService)
+			=> new ManutencaoRoleService(dbContextFactory, permissaoValidationService);
 	}
 }

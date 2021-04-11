@@ -2,20 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using WebApiSimplesCSharp.Data;
 
 namespace WebApiSimplesCSharp.Services.Permissoes
 {
 	class PermissaoCheckerService : IPermissaoCheckerService
 	{
-		private readonly IDbContextSingletonProvider dbContextProvider;
+		private readonly WebApiSimplesDbContext dbContext;
 
-		public PermissaoCheckerService(IDbContextSingletonProvider dbContextProvider)
-			=> this.dbContextProvider = dbContextProvider;
+		public PermissaoCheckerService(IDbContextFactory<WebApiSimplesDbContext> dbContextFactory)
+			=> dbContext = dbContextFactory.CreateDbContext();
+
+		public void Dispose() => dbContext.Dispose();
 
 		public bool HasPermissao(string nome, int usuarioId)
 			=> GetCachePermissao(nome, usuarioId, () => {
-				var dbContext = dbContextProvider.GetDbContext();
-
 				lock (dbContext) {
 					return dbContext.Usuarios.AsNoTracking()
 						.Include(u => u.Roles)

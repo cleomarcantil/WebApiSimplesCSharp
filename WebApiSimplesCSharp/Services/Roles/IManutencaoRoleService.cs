@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebApiSimplesCSharp.Models.Roles;
 
 namespace WebApiSimplesCSharp.Services.Roles
 {
-	public interface IManutencaoRoleService
+	public interface IManutencaoRoleService : IDisposable
 	{
 		Task<int> Criar(CriarRoleInputModel criarRoleInputModel);
 

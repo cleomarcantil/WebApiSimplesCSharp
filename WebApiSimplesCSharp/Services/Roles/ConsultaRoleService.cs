@@ -11,10 +11,12 @@ namespace WebApiSimplesCSharp.Services.Roles
 	{
 		private readonly WebApiSimplesDbContext dbContext;
 
-		public ConsultaRoleService(WebApiSimplesDbContext dbContext)
+		public ConsultaRoleService(IDbContextFactory<WebApiSimplesDbContext> dbContextFactory)
 		{
-			this.dbContext = dbContext;
+			this.dbContext = dbContextFactory.CreateDbContext();
 		}
+
+		public void Dispose() => dbContext.Dispose();
 
 		public bool Exists(int id)
 			=> dbContext.Roles.Any(u => u.Id == id);
