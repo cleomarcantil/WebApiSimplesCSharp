@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate;
+using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
 using WebApiSimplesCSharp.Data;
 using WebApiSimplesCSharp.Data.Entities;
@@ -11,11 +12,17 @@ namespace WebApiSimplesCSharp.GraphQL
 {
 	public class Query
 	{
-		public IQueryable<Usuario> GetUsuarios([Service] WebApiSimplesDbContext dbContext)
+		[UseDbContext(typeof(WebApiSimplesDbContext))]
+		[UseFiltering]
+		[UseSorting]
+		public IQueryable<Usuario> GetUsuarios([ScopedService] WebApiSimplesDbContext dbContext)
 			=> dbContext.Usuarios;
 
-		public IQueryable<Role> GetRoles([Service] WebApiSimplesDbContext dbContext)
-			=> dbContext.Roles.Include(r => r.Permissoes);
+		[UseDbContext(typeof(WebApiSimplesDbContext))]
+		[UseFiltering]
+		[UseSorting]
+		public IQueryable<Role> GetRoles([ScopedService] WebApiSimplesDbContext dbContext)
+			=> dbContext.Roles;
 
 	}
 }

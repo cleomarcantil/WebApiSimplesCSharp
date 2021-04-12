@@ -84,7 +84,9 @@ namespace WebApiSimplesCSharp
 			services.AddGraphQLServer()
 				.AddQueryType<GraphQL.Query>()
 				.AddType<GraphQL.UsuarioType>()
-				.AddType<GraphQL.RoleType>();
+				.AddType<GraphQL.RoleType>()
+				.AddFiltering()
+				.AddSorting();
 				
 		}
 
