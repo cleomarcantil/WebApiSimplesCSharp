@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
+using HelpersExtensions.PolicyAuthorization;
 using HotChocolate;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -12,14 +9,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using WebApiSimplesCSharp.Data;
-using WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization;
 using WebApiSimplesCSharp.Services;
 using WebApiSimplesCSharp.Services.Auth;
-using WebApiSimplesCSharp.Services.Constants.Policies;
 using WebApiSimplesCSharp.Services.Permissoes;
 using WebApiSimplesCSharp.Settings;
 

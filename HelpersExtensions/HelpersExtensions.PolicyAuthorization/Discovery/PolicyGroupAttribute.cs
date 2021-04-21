@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization
+namespace HelpersExtensions.PolicyAuthorization.Discovery
 {
-	[System.AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
 	public sealed class PolicyGroupAttribute : Attribute
 	{
 		public PolicyGroupAttribute(string groupName) => GroupName = groupName;

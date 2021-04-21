@@ -19,6 +19,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\HelpersExtensions\HelpersExtensions.PolicyAuthorization\HelpersExtensions.PolicyAuthorization.csproj" />
 		<ProjectReference Include="..\WebApiSimplesCSharp.Data\WebApiSimplesCSharp.Data.csproj" />
 	</ItemGroup>
 

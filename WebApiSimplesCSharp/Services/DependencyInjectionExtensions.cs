@@ -1,8 +1,8 @@
 ﻿using System;
+using HelpersExtensions.PolicyAuthorization.Discovery;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WebApiSimplesCSharp.Data;
-using WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization;
 using WebApiSimplesCSharp.Services.Auth;
 using WebApiSimplesCSharp.Services.Permissoes;
 using WebApiSimplesCSharp.Services.Roles;
@@ -32,7 +32,7 @@ namespace WebApiSimplesCSharp.Services
 
 		class PermissaoValidationService : IPermissaoValidationService
 		{
-			public bool IsValid(string nome) => PolicyDiscover.GetPolicyInfo(nome) is not null;
+			public bool IsValid(string nome) => PolicyDiscoverer.GetPolicyInfo(nome) is not null;
 		}
 
 		#endregion

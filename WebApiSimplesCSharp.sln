@@ -12,7 +12,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiSimplesCSharp.Tests", "WebApiSimplesCSharp.Tests\WebApiSimplesCSharp.Tests.csproj", "{9E855541-AD74-4E76-8740-22B4F42B7495}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApiSimplesCSharp.Tests", "WebApiSimplesCSharp.Tests\WebApiSimplesCSharp.Tests.csproj", "{9E855541-AD74-4E76-8740-22B4F42B7495}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelpersExtensions.PolicyAuthorization", "HelpersExtensions\HelpersExtensions.PolicyAuthorization\HelpersExtensions.PolicyAuthorization.csproj", "{197CB23E-8961-49E0-A543-3EEED27A38A2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "HelpersExtensions", "HelpersExtensions", "{C87730E0-D451-4AA7-A395-E453CD6AFAD1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,9 +36,16 @@ Global
 		{9E855541-AD74-4E76-8740-22B4F42B7495}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E855541-AD74-4E76-8740-22B4F42B7495}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E855541-AD74-4E76-8740-22B4F42B7495}.Release|Any CPU.Build.0 = Release|Any CPU
+		{197CB23E-8961-49E0-A543-3EEED27A38A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{197CB23E-8961-49E0-A543-3EEED27A38A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{197CB23E-8961-49E0-A543-3EEED27A38A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{197CB23E-8961-49E0-A543-3EEED27A38A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{197CB23E-8961-49E0-A543-3EEED27A38A2} = {C87730E0-D451-4AA7-A395-E453CD6AFAD1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7815D14F-E322-4366-BC7F-7D87063E8EF5}

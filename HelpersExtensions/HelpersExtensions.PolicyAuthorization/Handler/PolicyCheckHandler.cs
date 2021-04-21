@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
-namespace WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization
+namespace HelpersExtensions.PolicyAuthorization.Handler
 {
-	public class PolicyCheckHandler : AuthorizationHandler<PolicyCheckRequirement>
+	class PolicyCheckHandler : AuthorizationHandler<PolicyCheckRequirement>
 	{
 		private readonly IPolicyAuthorizationChecker policyCheckService;
 

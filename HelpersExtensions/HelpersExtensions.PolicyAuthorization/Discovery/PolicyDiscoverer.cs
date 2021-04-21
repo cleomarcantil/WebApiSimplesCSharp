@@ -5,9 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-namespace WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization
+namespace HelpersExtensions.PolicyAuthorization.Discovery
 {
-	public static class PolicyDiscover
+	public static class PolicyDiscoverer
 	{
 		public record PolicyGroupInfo
 		{
@@ -34,11 +34,11 @@ namespace WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization
 		public static void Init(IEnumerable<Assembly> assemblies)
 		{
 			if (IsInitialized) {
-				throw new Exception($"{nameof(PolicyDiscover)} já inicializado!");
+				throw new Exception($"{nameof(PolicyDiscoverer)} já inicializado!");
 			}
 
 			if (!assemblies.Any()) {
-				throw new ArgumentException($"{nameof(PolicyDiscover)}.{nameof(Init)} requer que os assemblies sejam especificados!", nameof(assemblies));
+				throw new ArgumentException($"{nameof(PolicyDiscoverer)}.{nameof(Init)} requer que os assemblies sejam especificados!", nameof(assemblies));
 			}
 
 			allPolicies = new();
@@ -71,7 +71,7 @@ namespace WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization
 		private static Dictionary<string, PolicyGroupInfo>? allPoliciesGroups = null;
 		private static Dictionary<string, PolicyInfo>? allPolicies = null;
 
-		private static T GetInited<T>(T? value) => value ?? throw new Exception($"{nameof(PolicyDiscover)}.{nameof(Init)} não chamado!");
+		private static T GetInited<T>(T? value) => value ?? throw new Exception($"{nameof(PolicyDiscoverer)}.{nameof(Init)} não chamado!");
 
 		#endregion
 

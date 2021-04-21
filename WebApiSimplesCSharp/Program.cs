@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebApiSimplesCSharp.Data;
-using WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization;
+using HelpersExtensions.PolicyAuthorization.Discovery;
 
 namespace WebApiSimplesCSharp
 {
@@ -17,7 +17,7 @@ namespace WebApiSimplesCSharp
 			var stopwatch = new Stopwatch();
 
 			stopwatch.Start();
-			PolicyDiscover.Init(new[] { typeof(Program).Assembly });
+			PolicyDiscoverer.Init(new[] { typeof(Program).Assembly });
 			stopwatch.Stop();
 			Console.WriteLine($"Tempo gasto com PoliciesDiscover.Init: {(stopwatch.ElapsedMilliseconds / 1000.0):0.000}");
 
@@ -50,7 +50,7 @@ namespace WebApiSimplesCSharp
 				DBInit.CheckMigrationsAsync(dbContext)
 					.Wait();
 
-				var todasAsPolicies = PolicyDiscover.GetAllPolicyGroups().SelectMany(p => p.Policies).Select(p => p.Name);
+				var todasAsPolicies = PolicyDiscoverer.GetAllPolicyGroups().SelectMany(p => p.Policies).Select(p => p.Name);
 
 				DBInit.CheckAdminUserAndRoleAsync(dbContext, todasAsPolicies, SENHA_INICIAL_ADMIN)
 					.Wait();

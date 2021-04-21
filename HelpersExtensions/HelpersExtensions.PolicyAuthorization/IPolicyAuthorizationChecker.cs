@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization
+namespace HelpersExtensions.PolicyAuthorization
 {
 	public interface IPolicyAuthorizationChecker
 	{

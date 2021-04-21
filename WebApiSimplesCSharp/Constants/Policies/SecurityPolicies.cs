@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization;
+using HelpersExtensions.PolicyAuthorization.Discovery;
 
 namespace WebApiSimplesCSharp.Constants.Policies
 {

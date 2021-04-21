@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using WebApiSimplesCSharp.Constants.Policies;
 using WebApiSimplesCSharp.Services.Auth;
 using WebApiSimplesCSharp.Services.Permissoes;
-using static WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization.PolicyDiscover;
+using static HelpersExtensions.PolicyAuthorization.Discovery.PolicyDiscoverer;
 
 namespace WebApiSimplesCSharp.Controllers
 {

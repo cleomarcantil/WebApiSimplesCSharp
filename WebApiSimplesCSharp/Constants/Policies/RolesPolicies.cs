@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using WebApiSimplesCSharp.HelpersExtensions.PolicyAuthorization;
+using HelpersExtensions.PolicyAuthorization.Discovery;
 
 namespace WebApiSimplesCSharp.Services.Constants.Policies
 {
