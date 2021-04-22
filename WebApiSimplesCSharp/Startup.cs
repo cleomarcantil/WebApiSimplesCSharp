@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Text;
 using HelpersExtensions.JwtAuthentication;
 using HelpersExtensions.PolicyAuthorization;
@@ -12,10 +11,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using WebApiSimplesCSharp.Adapters;
 using WebApiSimplesCSharp.Data;
 using WebApiSimplesCSharp.Models;
 using WebApiSimplesCSharp.Services;
-using WebApiSimplesCSharp.Services.Permissoes;
 using WebApiSimplesCSharp.Settings;
 
 namespace WebApiSimplesCSharp
@@ -92,17 +91,5 @@ namespace WebApiSimplesCSharp
 				endpoints.MapGraphQL();
 			});
 		}
-	}
-
-	class PolicyAuthorizationCheckerAdapter : IPolicyAuthorizationChecker
-	{
-		private readonly IPermissaoCheckerService permissaoCheckerService;
-
-		public PolicyAuthorizationCheckerAdapter(IPermissaoCheckerService permissaoCheckerService)
-			=> this.permissaoCheckerService = permissaoCheckerService;
-
-		public bool IsPolicyAuthorizedForUser(string policy, ClaimsPrincipal user)
-			=> (user.ToAuthUserData<AuthUserInfo>()?.Id is int userId) && permissaoCheckerService.HasPermissao(policy, userId);
-
-	}
+	}	
 }
