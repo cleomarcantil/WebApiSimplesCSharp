@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Dynamic;
+using HelpersExtensions.JwtAuthentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using WebApiSimplesCSharp.Constants.Policies;
-using WebApiSimplesCSharp.Services.Auth;
+using WebApiSimplesCSharp.Models;
 using WebApiSimplesCSharp.Services.Permissoes;
 using static HelpersExtensions.PolicyAuthorization.Discovery.PolicyDiscoverer;
 
@@ -15,12 +16,12 @@ namespace WebApiSimplesCSharp.Controllers
 	public class SecurityController : ControllerBase
 	{
 		private readonly IPermissaoCheckerService permissaoCheckerService;
-		private readonly IAuthService authService;
+		private readonly IAuthService<AuthUserInfo> authService;
 		private readonly ILogger<SecurityController> logger;
 
 		public SecurityController(
 			IPermissaoCheckerService permissaoCheckerService,
-			IAuthService authService,
+			IAuthService<AuthUserInfo> authService,
 			ILogger<SecurityController> logger)
 		{
 			this.permissaoCheckerService = permissaoCheckerService;
@@ -54,7 +55,7 @@ namespace WebApiSimplesCSharp.Controllers
 		[HttpGet("check-permissoes")]
 		public ExpandoObject CheckPermissoes([FromQuery(Name = "p")] string[] permissoes, [FromQuery] int? usuarioId = null)
 		{
-			usuarioId ??= authService.GetCurrentUserId();
+			usuarioId ??= authService.GetAuthUserData()?.Id;
 
 			var hasPermissoes = new ExpandoObject();
 

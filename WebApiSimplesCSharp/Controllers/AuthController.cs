@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using HelpersExtensions.JwtAuthentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WebApiSimplesCSharp.Constants.LogEvents;
 using WebApiSimplesCSharp.Exceptions;
+using WebApiSimplesCSharp.Models;
 using WebApiSimplesCSharp.Models.Auth;
-using WebApiSimplesCSharp.Services.Auth;
 using WebApiSimplesCSharp.Services.Usuarios;
 using WebApiSimplesCSharp.Settings;
 
@@ -22,13 +20,13 @@ namespace WebApiSimplesCSharp.Controllers
 	public class AuthController : ControllerBase
 	{
 		private readonly IConsultaUsuarioService consultaUsuarioService;
-		private readonly IAuthService authService;
+		private readonly IAuthService<AuthUserInfo> authService;
 		private readonly IOptions<TokenSettings> tokenSettingsOptions;
 		private readonly ILogger<AuthController> logger;
 
 		public AuthController(
 			IConsultaUsuarioService consultaUsuarioService,
-			IAuthService authService,
+			IAuthService<AuthUserInfo> authService,
 			IOptions<TokenSettings> tokenSettingsOptions,
 			ILogger<AuthController> logger)
 		{
@@ -54,7 +52,8 @@ namespace WebApiSimplesCSharp.Controllers
 
 				var tokenSettings = tokenSettingsOptions.Value;
 				var expiracaoToken = DateTime.UtcNow.AddMinutes(tokenSettings.Expires);
-				var token = authService.GenerateToken(usuario.Id, expiracaoToken, tokenSettings.Key, tokenSettings.Issuer, tokenSettings.Audience);
+				var authUserInfo = new AuthUserInfo { Id = usuario.Id, Nome = usuario.Nome, Login = usuario.Login };
+				var token = authService.GenerateToken(authUserInfo, expiracaoToken);
 
 				logger.LogInformation(AcessoLogEvents.Autenticado, "'{Login}' authenticado", credenciais.Login);
 
@@ -73,17 +72,17 @@ namespace WebApiSimplesCSharp.Controllers
 		[HttpPost("refresh-token")]
 		public ActionResult<TokenInfoViewModel> RefreshToken()
 		{
-			var usuarioId = authService.GetCurrentUserId();
+			var authUserInfo = authService.GetAuthUserData();
 
-			if (usuarioId is null) {
+			if (authUserInfo is null) {
 				return Unauthorized();
 			}
 
-			logger.LogInformation(AcessoLogEvents.TokenAtualizado, "Atualizando token para '{UsuarioId}')", usuarioId);
+			logger.LogInformation(AcessoLogEvents.TokenAtualizado, "Atualizando token para '{UsuarioId}')", authUserInfo?.Id);
 
 			var tokenSettings = tokenSettingsOptions.Value;
 			var expiracaoToken = DateTime.UtcNow.AddMinutes(tokenSettings.Expires);
-			var token = authService.GenerateToken(usuarioId.Value, expiracaoToken, tokenSettings.Key, tokenSettings.Issuer, tokenSettings.Audience);
+			var token = authService.GenerateToken(authUserInfo!, expiracaoToken);
 
 			return new TokenInfoViewModel
 			{
@@ -95,20 +94,17 @@ namespace WebApiSimplesCSharp.Controllers
 		[HttpGet("user")]
 		public ActionResult<AuthUserViewModel> GetAuthUser()
 		{
-			var usuarioAtualId = authService.GetCurrentUserId();
+			var authUserInfo = authService.GetAuthUserData();
 
-			if (usuarioAtualId is null) {
+			if (authUserInfo is null) {
 				return Unauthorized();
 			}
 
-			var usuarioAtual = consultaUsuarioService.GetById(usuarioAtualId.Value)
-				?? throw new Exception($"Erro obtendo usuário '{usuarioAtualId}'!");
-
 			return new AuthUserViewModel
 			{
-				Id = usuarioAtual.Id,
-				Nome = usuarioAtual.Nome,
-				Login = usuarioAtual.Login,
+				Id = authUserInfo.Id,
+				Nome = authUserInfo.Nome,
+				Login = authUserInfo.Login,
 			};
 		}
 
@@ -116,20 +112,20 @@ namespace WebApiSimplesCSharp.Controllers
 		[HttpPost("change-password")]
 		public async Task<ActionResult> ChangePassword(ChangePasswordInputModel changePassword, [FromServices] IManutencaoUsuarioService manutencaoUsuarioService)
 		{
-			var usuarioId = authService.GetCurrentUserId();
+			var authUserInfo = authService.GetAuthUserData();
 
-			if (usuarioId is null) {
+			if (authUserInfo is null) {
 				return Unauthorized();
 			}
 
-			var usuarioAtual = consultaUsuarioService.GetById(usuarioId.Value)
-				?? throw new Exception($"Erro obtendo usuário '{usuarioId}'!");
+			var usuarioAtual = consultaUsuarioService.GetById(authUserInfo.Id)
+				?? throw new Exception($"Erro obtendo usuário '{authUserInfo.Id}'!");
 
 			if (!usuarioAtual.CheckSenha(changePassword.SenhaAtual)) {
 				throw new CredenciaisInvalidasException("Senha atual inválida!");
 			}
 
-			await manutencaoUsuarioService.AlterarSenha(usuarioId.Value, changePassword.NovaSenha);
+			await manutencaoUsuarioService.AlterarSenha(authUserInfo.Id, changePassword.NovaSenha);
 
 			return NoContent();
 		}

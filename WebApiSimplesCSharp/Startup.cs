@@ -1,7 +1,8 @@
 using System.Security.Claims;
+using System.Text;
+using HelpersExtensions.JwtAuthentication;
 using HelpersExtensions.PolicyAuthorization;
 using HotChocolate;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,8 +13,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using WebApiSimplesCSharp.Data;
+using WebApiSimplesCSharp.Models;
 using WebApiSimplesCSharp.Services;
-using WebApiSimplesCSharp.Services.Auth;
 using WebApiSimplesCSharp.Services.Permissoes;
 using WebApiSimplesCSharp.Settings;
 
@@ -36,26 +37,12 @@ namespace WebApiSimplesCSharp
 
 			var tokenSettingsSectionConfig = Configuration.GetSection(TOKEN_SETTINGS_CONFIG_KEY);
 			services.Configure<TokenSettings>(tokenSettingsSectionConfig);
-			//services.AddTransient(f => f.GetRequiredService<IOptions<TokenSettings>>().Value);
 
 			var settings = new TokenSettings();
 			tokenSettingsSectionConfig.Bind(settings);
 
-			services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-				.AddJwtBearer(options => {
-					options.SaveToken = true;
-					options.RequireHttpsMetadata = false;
-					options.TokenValidationParameters = new TokenValidationParameters
-					{
-						ValidIssuer = settings.Issuer,
-						ValidAudience = settings.Audience,
-						ValidateIssuer = settings.Issuer is not null,
-						ValidateAudience = settings.Audience is not null,
-						ValidateLifetime = true,
-						ValidateIssuerSigningKey = true,
-						IssuerSigningKey = Services.Auth.AuthService.CreateSecurityKey(settings.Key),
-					};
-				});
+			var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.Key));
+			services.AddJwtAuthentication<AuthUserInfo>(securityKey, settings.Issuer, settings.Audience);
 
 			#endregion
 
@@ -115,6 +102,7 @@ namespace WebApiSimplesCSharp
 			=> this.permissaoCheckerService = permissaoCheckerService;
 
 		public bool IsPolicyAuthorizedForUser(string policy, ClaimsPrincipal user)
-			=> (AuthService.GetIdFromUser(user) is int userId) && permissaoCheckerService.HasPermissao(policy, userId);
+			=> (user.ToAuthUserData<AuthUserInfo>()?.Id is int userId) && permissaoCheckerService.HasPermissao(policy, userId);
+
 	}
 }

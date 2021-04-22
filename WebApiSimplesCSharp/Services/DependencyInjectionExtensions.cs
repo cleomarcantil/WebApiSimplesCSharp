@@ -3,7 +3,6 @@ using HelpersExtensions.PolicyAuthorization.Discovery;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WebApiSimplesCSharp.Data;
-using WebApiSimplesCSharp.Services.Auth;
 using WebApiSimplesCSharp.Services.Permissoes;
 using WebApiSimplesCSharp.Services.Roles;
 using WebApiSimplesCSharp.Services.Usuarios;
@@ -20,7 +19,6 @@ namespace WebApiSimplesCSharp.Services
 			services.AddScoped(f => RoleServiceFactory.CreateConsultaService(f.GetDbContextFactory()));
 			services.AddScoped(f => RoleServiceFactory.CreateManutencaoService(f.GetDbContextFactory(), new PermissaoValidationService()));
 
-			services.AddScoped<IAuthService, AuthService>();
 			services.AddSingleton(f => PermissaoCheckerServiceFactory.Create(f.GetDbContextFactory()));
 		}
 
